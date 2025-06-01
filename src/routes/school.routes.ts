@@ -1,5 +1,5 @@
 import express from "express";
-import { protect } from "@/middleware/auth.middleware";
+import { protect, roleAuth } from "@/middleware/auth.middleware";
 import {
     createSchool,
     getSchools,
@@ -7,13 +7,14 @@ import {
     updateSchool,
     deleteSchool,
 } from "@/controllers/school.controller";
+import { ROLES } from "@/utils/constants";
 
 const router = express.Router();
 
-router.post("/", protect, createSchool);
-router.get("/", protect, getSchools);           // ✅ Fixed
-router.get("/:id", protect, getSchool);         // ✅ Fixed
-router.put("/:id", protect, updateSchool);
-router.delete("/:id", protect, deleteSchool);
+router.post("/", protect, roleAuth([ROLES.ADMIN]), createSchool);
+router.get("/", protect, roleAuth([ROLES.PUBLIC]), getSchools);
+router.get("/:id", protect, roleAuth([ROLES.PUBLIC]), getSchool);
+router.put("/:id", protect, roleAuth([ROLES.ADMIN]), updateSchool);
+router.delete("/:id", protect, roleAuth([ROLES.ADMIN]), deleteSchool);
 
 export default router;

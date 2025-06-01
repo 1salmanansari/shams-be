@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import User from "@/models/user.modal";
 import { ENV } from "@/config/env";
+import { ROLES } from "@/utils/constants";
+import i18n from "@/i18n/en";
 
 export interface AuthRequest extends Request {
   user?: any;
@@ -15,7 +17,7 @@ export const protect = async (
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    res.status(401).json({ error: "Unauthorized - No token provided" });
+    res.status(401).json({ error: i18n.FAIL_AUTH_EMPTY });
     return;
   }
 
@@ -26,7 +28,7 @@ export const protect = async (
     req.user = decoded;
     next();
   } catch (error) {
-    res.status(401).json({ error: "Unauthorized - Invalid token" });
+    res.status(401).json({ error: i18n.FAIL_AUTH_INVALID });
   }
 };
 
@@ -38,7 +40,7 @@ export const authenticate = async (
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    res.status(401).json({ error: "Unauthorized" });
+    res.status(401).json({ error: i18n.FAIL_AUTH_EMPTY });
     return;
   }
 
@@ -49,7 +51,7 @@ export const authenticate = async (
 
     const user = await User.findOne({ id: payload.id, tokens: token });
     if (!user) {
-      res.status(401).json({ error: "Invalid token" });
+      res.status(401).json({ error: i18n.FAIL_AUTH_INVALID });
       return;
     }
 
@@ -58,6 +60,26 @@ export const authenticate = async (
 
     next();
   } catch (error) {
-    res.status(401).json({ error: "Token verification failed", details: error });
+    res.status(401).json({ error: i18n.FAIL_AUTH, details: error });
   }
+};
+
+export const roleAuth = (roles: string[]) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const authHeader = req?.headers?.authorization || "";
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      res.status(401).json({ error: i18n.FAIL_AUTH_EMPTY });
+      return;
+    }
+
+    const token = authHeader.split(" ")[1];
+    const payload = jwt.verify(token, ENV.JWT_SECRET!) as { role?: string };
+    const isPublic = Boolean(payload?.role === ROLES.PUBLIC);
+    if (!isPublic && !roles.includes(payload?.role || "")) {
+      res.status(403).json({ error: i18n.FAIL_ROLE });
+      return;
+    }
+
+    next();
+  };
 };

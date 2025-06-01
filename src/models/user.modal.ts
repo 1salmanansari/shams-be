@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { v4 as uuidv4 } from "uuid";
+import { ROLES } from "@/utils/constants";
 
 const userSchema = new mongoose.Schema(
   {
@@ -14,6 +15,7 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true },
     mobile: { type: String },
+    role: { type: String, enum: ROLES, default: ROLES.TEACHER },
     DOB: { type: String },
     tokens: { type: [String], default: [] },  
     isLoginGrant: { type: Boolean, default: false, required: true },

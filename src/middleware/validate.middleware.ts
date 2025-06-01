@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { ZodSchema } from "zod";
+import i18n from "@/i18n/en";
 
 export const validate = (schema: ZodSchema<any>) => (
     req: Request,
@@ -10,7 +11,7 @@ export const validate = (schema: ZodSchema<any>) => (
 
     if (!result.success) {
         return res.status(400).json({
-            error: "Validation failed",
+            error: i18n.FAIL_VALIDATION,
             details: result.error.errors,
         });
     }

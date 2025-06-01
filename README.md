@@ -41,3 +41,10 @@ src/
 │ └── connection.handler.ts # Socket events
 └── types/
 └── express.d.ts # Custom Request types
+
+## 🔐 Role-Based Access
+
+| Role    | Permissions                      |
+|---------|----------------------------------|
+| ADMIN   | Full access                      |
+| TEACHER | View + manage schools            |
