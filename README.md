@@ -1,6 +1,8 @@
-# 🚀 Node.js Backend Boilerplate
+# 🎓 School Management
 
-A production-ready backend boilerplate built with **Node.js**, **TypeScript**, **MongoDB**, and **Socket.IO**. Includes JWT authentication, API routing, WebSocket communication, and environment-specific security.
+A secure and scalable backend built with Node.js, TypeScript, MongoDB, and Socket.IO.
+It handles user authentication, real-time communication, and school data management.
+Ideal for modern educational platforms that need speed, security, and flexibility.
 
 ---
 
