@@ -24,25 +24,26 @@ Ideal for modern educational platforms that need speed, security, and flexibilit
 ## 📁 Folder Structure
 
 src/
-├── app.ts # Express app config
-├── server.ts # Entry point with HTTP & Socket.IO server
+├── app.ts                  # Express app config
+├── server.ts               # Entry point with HTTP & Socket.IO server
 ├── config/
-│ ├── env.ts # ENV loader
-│ └── db.ts # MongoDB connection
+│   ├── env.ts              # ENV loader
+│   └── db.ts               # MongoDB connection
 ├── middleware/
-│ ├── auth.middleware.ts # JWT protect/auth
-│ └── socketAuth.middleware.ts # Socket.IO auth
+│   ├── auth.middleware.ts  # JWT protect/auth
+│   └── socketAuth.middleware.ts # Socket.IO auth
 ├── models/
-│ └── user.model.ts # Mongoose model
+│   └── user.model.ts       # Mongoose model
 ├── routes/
-│ ├── index.ts # Root router
-│ ├── user.routes.ts # /users routes
-│ └── school.routes.ts # /schools routes
+│   ├── index.ts            # Root router
+│   ├── user.routes.ts      # /users routes
+│   └── school.routes.ts    # /schools routes
 ├── socket/
-│ └── events/
-│ └── connection.handler.ts # Socket events
+│   └── events/
+│   └── connection.handler.ts # Socket events
 └── types/
-└── express.d.ts # Custom Request types
+    └── express.d.ts        # Custom Request types
+
 
 ## 🔐 Role-Based Access
 
