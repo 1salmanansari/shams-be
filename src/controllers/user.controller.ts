@@ -79,7 +79,12 @@ export const updateUser = async (req: Request, res: Response) => {
   user ? res.json(user) : res.status(404).json({ error: i18n.FAIL_USER_EMPTY });
 };
 
-export const deleteUser = async (req: Request, res: Response) => {
+export const hardDelete = async (req: Request, res: Response) => {
   const user = await UserService.deleteUser(req.params.id);
+  user ? res.json({ message: i18n.PASS_USER_REMOVE }) : res.status(404).json({ error: i18n.FAIL_USER_EMPTY });
+};
+
+export const softDelete = async (req: Request, res: Response) => {
+  const user = await UserService.deleteUser(req.params.id, true);
   user ? res.json({ message: i18n.PASS_USER_REMOVE }) : res.status(404).json({ error: i18n.FAIL_USER_EMPTY });
 };

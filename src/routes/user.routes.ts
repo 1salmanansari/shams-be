@@ -6,7 +6,8 @@ import {
     getUsers,
     getUser,
     updateUser,
-    deleteUser,
+    hardDelete,
+    softDelete
 } from "@/controllers/user.controller";
 import { ROLES } from "@/utils/constants";
 
@@ -18,6 +19,7 @@ router.post("/login", loginUser);
 router.get("/", protect, roleAuth([ROLES.ADMIN]), getUsers);
 router.get("/:id", protect, roleAuth([ROLES.ADMIN]), getUser);
 router.put("/:id", protect, roleAuth([ROLES.ADMIN]), updateUser);
-router.delete("/:id", protect, roleAuth([ROLES.ADMIN]), deleteUser);
+router.patch("/:id", protect, roleAuth([ROLES.PUBLIC]), softDelete);
+router.delete("/:id", protect, roleAuth([ROLES.ADMIN]), hardDelete);
 
 export default router;

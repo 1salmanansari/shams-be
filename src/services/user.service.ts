@@ -17,7 +17,10 @@ export const updateUser = async (id: string, data: any) => {
   return await User.findOneAndUpdate({ id }, { ...data, updatedAt: Date.now() }, { new: true });
 };
 
-export const deleteUser = async (id: string) => {
+export const deleteUser = async (id: string, isVirtual?: boolean) => {
+  if (isVirtual) {
+    return await User.findOneAndUpdate({ id }, { isDelete: true, isActive: false, updatedAt: Date.now() }, { new: true });
+  }
   return await User.findOneAndDelete({ id });
 };
 
