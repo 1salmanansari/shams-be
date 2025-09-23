@@ -41,6 +41,7 @@ export const loginUser = async (req: Request, res: Response) => {
 
 export const ping = async (req: Request, res: Response) => {
   try {
+    console.log('sam log ping')
     res.json({
       message: i18n.PING_PASS,
     });
