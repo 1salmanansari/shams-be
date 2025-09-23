@@ -1,10 +1,10 @@
 import http from "http";
 import { Server } from "socket.io";
-import app from "@/app";
-import connectDB from "@/config/db";
-import { socketAuthMiddleware } from "@/middleware/socketAuth.middleware";
-import { handleSocketConnection } from "@/socket/events/connection.handler";
-import { ENV } from "@/config/env";
+import app from "./app";
+import connectDB from "./config/db";
+import { socketAuthMiddleware } from "./middleware/socketAuth.middleware";
+import { handleSocketConnection } from "./socket/events/connection.handler";
+import { ENV } from "./config/env";
 
 const PORT = Number(ENV.PORT) || 4000;
 

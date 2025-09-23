@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import * as UserService from "@/services/user.service";
-import { ENV } from "@/config/env";
-import i18n from "@/i18n/en";
+import * as UserService from "../services/user.service";
+import { ENV } from "../config/env";
+import i18n from "../i18n/en";
 
 export const registerUser = async (req: Request, res: Response) => {
   try {

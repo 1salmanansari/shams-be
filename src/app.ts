@@ -1,9 +1,9 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-import router from "@/routes";
-import { ENV } from "@/config/env";
-import i18n from "@/i18n/en";
+import router from "./routes";
+import { ENV } from "./config/env";
+import i18n from "./i18n/en";
 
 const app = express();
 

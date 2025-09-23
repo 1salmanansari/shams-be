@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { v4 as uuidv4 } from "uuid";
-import { ROLES } from "@/utils/constants";
+import { ROLES } from "../utils/constants";
 
 const userSchema = new mongoose.Schema(
   {

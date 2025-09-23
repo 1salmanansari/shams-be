@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import * as SchoolService from "@/services/school.service";
-import { io } from "@/server";
-import i18n from "@/i18n/en";
+import * as SchoolService from "../services/school.service";
+import { io } from "../server";
+import i18n from "../i18n/en";
 
 export const createSchool = async (req: Request, res: Response): Promise<void> => {
     try {

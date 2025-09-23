@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import User from "@/models/user.modal";
-import { ENV } from "@/config/env";
-import { ROLES } from "@/utils/constants";
-import i18n from "@/i18n/en";
+import User from "../models/user.modal";
+import { ENV } from "../config/env";
+import { ROLES } from "../utils/constants";
+import i18n from "../i18n/en";
 
 export interface AuthRequest extends Request {
   user?: any;

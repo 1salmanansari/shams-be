@@ -1,4 +1,4 @@
-import User from "@/models/user.modal";
+import User from "../models/user.modal";
 
 export const createUser = async (data: any) => {
   const user = new User(data);

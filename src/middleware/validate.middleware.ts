@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { ZodSchema } from "zod";
-import i18n from "@/i18n/en";
+import i18n from "../i18n/en";
 
 export const validate = (schema: ZodSchema<any>) => (
     req: Request,

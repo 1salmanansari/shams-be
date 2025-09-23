@@ -1,4 +1,4 @@
-import School from "@/models/school.modal";
+import School from "../models/school.modal";
 
 export const createSchool = async (data: any) => {
   const school = new School(data);

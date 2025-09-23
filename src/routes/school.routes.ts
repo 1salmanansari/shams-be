@@ -1,13 +1,13 @@
 import express from "express";
-import { protect, roleAuth } from "@/middleware/auth.middleware";
+import { protect, roleAuth } from "../middleware/auth.middleware";
 import {
     createSchool,
     getSchools,
     getSchool,
     updateSchool,
     deleteSchool,
-} from "@/controllers/school.controller";
-import { ROLES } from "@/utils/constants";
+} from "../controllers/school.controller";
+import { ROLES } from "../utils/constants";
 
 const router = express.Router();
 

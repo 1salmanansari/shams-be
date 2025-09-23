@@ -1,6 +1,6 @@
 // src/routes/index.ts
-import userRoutes from "@/routes/user.routes";
-import schoolRoutes from "@/routes/school.routes";
+import userRoutes from "../routes/user.routes";
+import schoolRoutes from "../routes/school.routes";
 
 import { Router } from "express";
 const router = Router();
