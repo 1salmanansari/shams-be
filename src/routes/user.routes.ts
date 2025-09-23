@@ -7,12 +7,14 @@ import {
     getUser,
     updateUser,
     hardDelete,
-    softDelete
+    softDelete,
+    ping
 } from "../controllers/user.controller";
 import { ROLES } from "../utils/constants";
 
 const router = express.Router();
 
+router.get("/ping", ping);
 router.post("/register", registerUser);
 // @ts-ignore
 router.post("/login", loginUser);

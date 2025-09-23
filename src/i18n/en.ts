@@ -1,4 +1,6 @@
 export default {
+    // PING
+    PING_PASS: "PING",
     // USERS
     PASS_USER_POST: "WOW! Added User successfully",
     PASS_USER_REMOVE: "Deleted: User record",

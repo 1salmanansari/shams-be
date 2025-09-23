@@ -39,6 +39,16 @@ export const loginUser = async (req: Request, res: Response) => {
   }
 };
 
+export const ping = async (req: Request, res: Response) => {
+  try {
+    res.json({
+      message: i18n.PING_PASS,
+    });
+  } catch (error) {
+    res.status(500).json({ error: i18n.FAIL_USER_LOGIN, details: error });
+  }
+};
+
 export const logoutUser = async (req: Request, res: Response) => {
   try {
     const token = req.headers.authorization?.split(" ")[1];
