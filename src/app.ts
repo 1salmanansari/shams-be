@@ -6,27 +6,34 @@ import { ENV } from "./config/env";
 import i18n from "./i18n/en";
 
 const app = express();
+const allowedOrigins = ENV.ORIGIN === '*' ? true : ENV.ORIGIN;
 
 // 🛡️ Set security headers
 app.use(helmet());
 
 // 🌐 CORS — allow only your frontend origin
 app.use(cors({
-  origin: ENV.ORIGIN,
-  credentials: true,
+  origin: allowedOrigins,
+  credentials: ENV.ORIGIN !== '*', // Only allow credentials if not wildcard
 }));
 
-// 🚫 Block other origins manually
-// app.use((req, res, next) => {
-//   const origin = req.headers.origin;
+// 🚫 Block other origins manually (only if not using wildcard)
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  console.log('sam log origin', origin)
 
-//   if (!Boolean(ENV.LOCAL) && origin && origin !== ENV.ORIGIN) {
-//     res.status(403).json({ message: i18n.FAIL_ORIGIN });
-//     return; // ✅ explicitly exit
-//   }
+  // Skip origin check if LOCAL=true or ORIGIN=*
+  if (Boolean(ENV.LOCAL) || ENV.ORIGIN === '*') {
+    return next();
+  }
 
-//   next(); // ✅ no return here
-// });
+  if (origin && origin !== ENV.ORIGIN) {
+    res.status(403).json({ message: i18n.FAIL_ORIGIN });
+    return;
+  }
+
+  next();
+});
 
 // 🧩 Body parsing
 app.use(express.json());
