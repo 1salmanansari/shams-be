@@ -17,16 +17,16 @@ app.use(cors({
 }));
 
 // 🚫 Block other origins manually
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
+// app.use((req, res, next) => {
+//   const origin = req.headers.origin;
 
-  if (!Boolean(ENV.LOCAL) && origin && origin !== ENV.ORIGIN) {
-    res.status(403).json({ message: i18n.FAIL_ORIGIN });
-    return; // ✅ explicitly exit
-  }
+//   if (!Boolean(ENV.LOCAL) && origin && origin !== ENV.ORIGIN) {
+//     res.status(403).json({ message: i18n.FAIL_ORIGIN });
+//     return; // ✅ explicitly exit
+//   }
 
-  next(); // ✅ no return here
-});
+//   next(); // ✅ no return here
+// });
 
 // 🧩 Body parsing
 app.use(express.json());
