@@ -7,6 +7,7 @@ import { handleSocketConnection } from "./socket/events/connection.handler";
 import { ENV } from "./config/env";
 
 const PORT = Number(ENV.PORT) || 4000;
+const HOST = '0.0.0.0'; // Bind to all interfaces
 
 // Create HTTP server
 const server = http.createServer(app);
@@ -20,7 +21,7 @@ const io = new Server(server, {
   },
 });
 
-// Attach Socket.IO to global scope (or export it from here if needed)
+// Attach Socket.IO middleware and handlers
 io.use(socketAuthMiddleware);
 io.on("connection", handleSocketConnection);
 
@@ -28,8 +29,8 @@ io.on("connection", handleSocketConnection);
 const startServer = async () => {
   try {
     await connectDB();
-    server.listen(PORT, () => {
-      console.log(`🚀 Server running at http://localhost:${PORT}`);
+    server.listen(PORT, HOST, () => {
+      console.log(`🚀 Server running at http://${HOST}:${PORT}`);
     });
   } catch (error) {
     console.error("❌ Failed to start server:", (error as Error).message);
