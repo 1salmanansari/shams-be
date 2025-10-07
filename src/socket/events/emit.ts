@@ -1,0 +1,7 @@
+// EMIT ADD ACTION
+const ADD_SCHOOL = "ADD:SCHOOL";
+const ADD_CUSTOMER = "ADD:CUSTOMER";
+
+export {
+    ADD_SCHOOL, ADD_CUSTOMER
+};

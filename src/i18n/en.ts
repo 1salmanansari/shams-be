@@ -18,6 +18,15 @@ export default {
     FAIL_SCHOOL_DELETE: "Failed to delete school",
     FAIL_SCHOOL_POST: "Failed: to add school",
     FAIL_SCHOOL_EMPTY: "Failed: School not found",
+    // CUSTOMERS
+    PASS_CUSTOMER_POST: "WOW! Added Customer successfully",
+    PASS_CUSTOMER_REMOVE: "Deleted: Customer record",
+    PASS_CUSTOMER_UPDATE: "Customer updated successfully",
+    FAIL_CUSTOMER_UPDATE: "Failed to update customer",
+    FAIL_CUSTOMER_FETCH: "Failed to fetch customer(s)",
+    FAIL_CUSTOMER_DELETE: "Failed to delete customer",
+    FAIL_CUSTOMER_POST: "Failed: to add customer",
+    FAIL_CUSTOMER_EMPTY: "Failed: Customer not found",
     // AUTH TOKEN
     PASS_LOGIN: "Login successful",
     PASS_LOGOUT: "Log out successfully",

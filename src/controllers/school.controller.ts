@@ -2,11 +2,12 @@ import { Request, Response } from "express";
 import * as SchoolService from "../services/school.service";
 import { io } from "../server";
 import i18n from "../i18n/en";
+import { ADD_SCHOOL } from "socket/events/emit";
 
 export const createSchool = async (req: Request, res: Response): Promise<void> => {
     try {
         const school = await SchoolService.createSchool(req.body);
-        io.emit("school:created", school);
+        io.emit(ADD_SCHOOL, school);
         res.status(201).json({ message: i18n.PASS_SCHOOL_POST, school });
     } catch (error) {
         res.status(500).json({
