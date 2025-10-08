@@ -3,6 +3,7 @@ export const PROJECT_STOCK_BRIEF = {
     name: true,
     type: true,
     scale: true,
+    cost: true,
     available: true,
     isActive: true,
     isDelete: true,

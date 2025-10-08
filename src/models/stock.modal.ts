@@ -12,6 +12,7 @@ const stockSchema = new mongoose.Schema({
     type: { type: String, required: true, enum: ["PUMP", "MOTOR", "RAW"] }, // ALLOW TYPES ["PUMP", "MOTOR", "RAW"]
     scale: { type: String, required: true },
     available: { type: Number, default: 0, required: true },
+    cost: { type: Number, default: 0, required: true },
     isActive: { type: Boolean, default: true, required: true },
     isDelete: { type: Boolean, default: false, required: true },
     createdAt: { type: Number, default: () => Date.now(), required: true },
