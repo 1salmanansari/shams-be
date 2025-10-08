@@ -9,38 +9,37 @@ export const addItem = async (data: IAdd) => {
 
 export const getItem = async (cond: ITransactionMatch) => {
     const transactions = await Acc.aggregate([
-        // Stage 1: Filter active transactions
+        // 1️⃣ Match Transactions
         { $match: { ...cond } },
 
-        // Stage 2: Lookup client details
+        // 2️⃣ Lookup Client Details
         {
             $lookup: {
                 from: "customers",
                 localField: "client",
                 foreignField: "id",
                 as: "clientDetails",
+                pipeline: [
+                    { $project: { _id: 0, id: 1, name: 1, company: 1, mobile: 1, gst: 1 } }
+                ]
             },
         },
+        { $unwind: { path: "$clientDetails", preserveNullAndEmptyArrays: true } },
 
-        // Stage 3: Unwind client details
-        {
-            $unwind: {
-                path: "$clientDetails",
-                preserveNullAndEmptyArrays: true,
-            },
-        },
-
-        // Stage 4: Lookup item details for each item
+        // 3️⃣ Lookup Items from Stock (with cost and name)
         {
             $lookup: {
                 from: "stocks",
                 localField: "items.id",
                 foreignField: "id",
                 as: "itemDetails",
+                pipeline: [
+                    { $project: { _id: 0, id: 1, name: 1, cost: 1 } } // ✅ include real cost
+                ]
             },
         },
 
-        // Stage 5: Map items with their details
+        // 4️⃣ Enrich items with name, cost, and gross (qty * rate)
         {
             $addFields: {
                 items: {
@@ -48,38 +47,37 @@ export const getItem = async (cond: ITransactionMatch) => {
                         input: "$items",
                         as: "txnItem",
                         in: {
-                            $mergeObjects: [
-                                "$$txnItem",
-                                {
-                                    name: {
-                                        $let: {
-                                            vars: {
-                                                matchedItem: {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $filter: {
-                                                                input: "$itemDetails",
-                                                                as: "item",
-                                                                cond: { $eq: ["$$item.id", "$$txnItem.id"] },
-                                                            },
-                                                        },
-                                                        0,
-                                                    ],
+                            $let: {
+                                vars: {
+                                    matchedItem: {
+                                        $arrayElemAt: [
+                                            {
+                                                $filter: {
+                                                    input: "$itemDetails",
+                                                    as: "item",
+                                                    cond: { $eq: ["$$item.id", "$$txnItem.id"] },
                                                 },
                                             },
-                                            in: "$$matchedItem.name",
-                                        },
+                                            0,
+                                        ],
                                     },
-                                    itemTotal: { $multiply: ["$$txnItem.qty", "$$txnItem.rate"] },
                                 },
-                            ],
+                                in: {
+                                    id: "$$txnItem.id",
+                                    qty: "$$txnItem.qty",
+                                    rate: "$$txnItem.rate",
+                                    name: "$$matchedItem.name",
+                                    cost: "$$matchedItem.cost",
+                                    gross: { $multiply: ["$$txnItem.qty", "$$txnItem.rate"] },
+                                },
+                            },
                         },
                     },
                 },
             },
         },
 
-        // Stage 6: Calculate totals
+        // 5️⃣ Calculate Totals using gross
         {
             $addFields: {
                 clientName: "$clientDetails.name",
@@ -87,13 +85,13 @@ export const getItem = async (cond: ITransactionMatch) => {
                     $reduce: {
                         input: "$items",
                         initialValue: 0,
-                        in: { $add: ["$$value", { $multiply: ["$$this.qty", "$$this.rate"] }] },
+                        in: { $add: ["$$value", "$$this.gross"] },
                     },
                 },
             },
         },
 
-        // Stage 7: Add total amount with GST
+        // 6️⃣ Add GST total
         {
             $addFields: {
                 totalAmount: {
@@ -105,23 +103,21 @@ export const getItem = async (cond: ITransactionMatch) => {
             },
         },
 
-        // Stage 8: Remove temporary fields
+        // 7️⃣ Project Final Fields
         {
             $project: {
-                clientDetails: 0,
-                itemDetails: 0,
                 _id: 0,
                 __v: 0,
+                clientDetails: 0,
+                itemDetails: 0,
             },
         },
 
-        // Stage 9: Sort
+        // 8️⃣ Sort by Created Date
         { $sort: { createdAt: -1 } },
     ]);
 
-    return {
-        list: transactions
-    }
+    return { list: transactions };
 };
 
 export const getItems = async () => {
