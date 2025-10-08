@@ -10,7 +10,7 @@ export const addCustomer = async (data: IAdd) => {
 export const getAllCustomers = async (isLite: boolean) => {
     const project = isLite ? PROJECT_CUSTOMER_LITE : PROJECT_CUSTOMER_BRIEF;
     return {
-        list: await Customer.find().projection(project).lean(),
+        list: await Customer.find({}, project).lean()
     };
 };
 
@@ -23,7 +23,7 @@ export const getCustomers = async ({ page = 0, limit = 0, isLite }: IGet) => {
     if (!page && !limit) {
         const count = await Customer.countDocuments();
         const totalPages = Math.ceil(count / currentLimit);
-        const data = await Customer.find().skip(skip).limit(currentLimit).projection(project).lean();
+        const data = await Customer.find({}, project).skip(skip).limit(currentLimit).lean();
         return {
             list: data,
             page: currentPage,
@@ -31,7 +31,7 @@ export const getCustomers = async ({ page = 0, limit = 0, isLite }: IGet) => {
         };
     }
 
-    const data = await Customer.find().skip(skip).limit(currentLimit).projection(project).lean();
+    const data = await Customer.find({}, project).skip(skip).limit(currentLimit).lean();
     return {
         list: data,
         page: currentPage,
@@ -41,7 +41,7 @@ export const getCustomers = async ({ page = 0, limit = 0, isLite }: IGet) => {
 
 export const getCustomerById = async (id: string, isLite?: Boolean) => {
     const project = isLite ? PROJECT_CUSTOMER_LITE : PROJECT_CUSTOMER_BRIEF;
-    return await Customer.findOne({ id }).projection(project);
+    return await Customer.findOne({ id }, project);
 };
 
 export const updateCustomer = async (id: string, data: IEdit) => {

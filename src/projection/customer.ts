@@ -4,6 +4,7 @@ export const PROJECT_CUSTOMER_BRIEF = {
     company: true,
     dialCode: true,
     gst: true,
+    prev: true,
     mobile: true,
     isActive: true,
     isDelete: true,

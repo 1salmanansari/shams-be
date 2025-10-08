@@ -4,6 +4,7 @@ import helmet from "helmet";
 import router from "./routes";
 import { ENV } from "./config/env";
 import i18n from "./i18n/en";
+import { logData } from "utils/helper";
 
 const app = express();
 const allowedOrigins = ENV.ORIGIN === '*' ? true : ENV.ORIGIN;
@@ -20,7 +21,7 @@ app.use(cors({
 // 🚫 Block other origins manually (only if not using wildcard)
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  console.log('sam log origin', origin)
+  logData('Origin', origin)
 
   // Skip origin check if LOCAL=true or ORIGIN=*
   if (Boolean(ENV.LOCAL) || ENV.ORIGIN === '*') {

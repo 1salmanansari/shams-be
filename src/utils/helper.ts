@@ -39,3 +39,9 @@ export const parseMsg = (msg: string, data: string) => {
         .replace('<Data>', TITLE)
         .replace('<datas>', PLURAL);
 };
+
+export const logData = (key: string, data: unknown): void => {
+    console.log("========================");
+    console.log(`sam log ${key}`, data);
+    console.log("========================");
+};

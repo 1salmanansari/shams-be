@@ -1,5 +1,6 @@
 import { IAdd, IEdit, ITransactionItem, ITransactionMatch } from "interfaces/account";
 import Acc from "../models/account.modal";
+import { logData } from "utils/helper";
 
 export const addItem = async (data: IAdd) => {
     const customer = new Acc(data);
@@ -14,7 +15,7 @@ export const getItem = async (cond: ITransactionMatch) => {
         // Stage 2: Lookup client details
         {
             $lookup: {
-                from: "Customer",
+                from: "customers",
                 localField: "client",
                 foreignField: "id",
                 as: "clientDetails",
@@ -32,7 +33,7 @@ export const getItem = async (cond: ITransactionMatch) => {
         // Stage 4: Lookup item details for each item
         {
             $lookup: {
-                from: "Stock",
+                from: "stocks",
                 localField: "items.id",
                 foreignField: "id",
                 as: "itemDetails",
@@ -124,7 +125,7 @@ export const getItem = async (cond: ITransactionMatch) => {
 };
 
 export const getItems = async () => {
-    return await getItem({ isDelete: true });
+    return await getItem({ isDelete: false });
 };
 
 export const getItemById = async (id: string) => {
@@ -136,13 +137,12 @@ export const updateItem = async ({ id, ...data }: IEdit) => {
 };
 
 export const editItem = async (id: string, items: Array<ITransactionItem>) => {
-    return await Acc.findOneAndUpdate({ id }, { items, updatedAt: Date.now() }, { new: true });
+    return await Acc.findOneAndUpdate({ id }, { items: [...items], updatedAt: Date.now() }, { new: true });
 };
 
 export const deleteItem = async (id: string, soft?: boolean) => {
     if (soft) {
-        const data = await Acc.findOne({ where: { id } });
-        return await data?.softDelete();
+        return await Acc.findOneAndUpdate({ id }, { isDelete: true });
     }
     return await Acc.findOneAndDelete({ id });
 };

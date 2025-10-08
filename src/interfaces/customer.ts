@@ -3,6 +3,7 @@ export interface IAdd {
     company: string;
     dialCode: string;
     gst: string;
+    prev?: number;
     mobile: string;
 };
 
@@ -11,6 +12,7 @@ export interface IEdit {
     company?: string;
     dialCode?: string;
     gst?: string;
+    prev?: number;
     mobile?: string;
     isActive?: boolean;
     isDelete?: boolean;

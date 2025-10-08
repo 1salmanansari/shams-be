@@ -13,6 +13,7 @@ const customerSchema = new mongoose.Schema({
     dialCode: { type: String, required: true },
     gst: { type: String, default: '' },
     mobile: { type: String, required: true },
+    prev: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true, required: true },
     isDelete: { type: Boolean, default: false, required: true },
     createdAt: { type: Number, default: () => Date.now(), required: true },

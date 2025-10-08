@@ -5,12 +5,13 @@ import * as UserService from "../services/user.service";
 import { ENV } from "../config/env";
 import i18n from "../i18n/en";
 import { parseMsg } from "utils/helper";
+const MODULE = 'user';
 
 export const registerUser = async (req: Request, res: Response) => {
   try {
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
     const user = await UserService.createUser({ ...req.body, password: hashedPassword });
-    res.status(201).json({ message: parseMsg(i18n.PASS_POST, 'user'), user });
+    res.status(201).json({ message: parseMsg(i18n.PASS_POST, MODULE), user });
   } catch (error) {
     res.status(500).json({ error: i18n.FAIL_USER_POST, details: error });
   }
@@ -19,7 +20,7 @@ export const registerUser = async (req: Request, res: Response) => {
 export const loginUser = async (req: Request, res: Response) => {
   try {
     const user = await UserService.auth(req.body.email);
-    if (!user) return res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, 'user') });
+    if (!user) return res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, MODULE) });
 
     const isMatch = await bcrypt.compare(req.body.password, user.password);
     if (!isMatch) return res.status(401).json({ error: i18n.FAIL_AUTH_INVALID });
@@ -83,20 +84,20 @@ export const getUsers = async (_req: Request, res: Response) => {
 
 export const getUser = async (req: Request, res: Response) => {
   const user = await UserService.getUserById(req.params.id);
-  user ? res.json(user) : res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, 'user') });
+  user ? res.json(user) : res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, MODULE) });
 };
 
 export const updateUser = async (req: Request, res: Response) => {
   const user = await UserService.updateUser(req.params.id, req.body);
-  user ? res.json(user) : res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, 'user') });
+  user ? res.json(user) : res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, MODULE) });
 };
 
 export const hardDelete = async (req: Request, res: Response) => {
   const user = await UserService.deleteUser(req.params.id);
-  user ? res.json({ message: parseMsg(i18n.PASS_REMOVE, 'user') }) : res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, 'user') });
+  user ? res.json({ message: parseMsg(i18n.PASS_REMOVE, MODULE) }) : res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, MODULE) });
 };
 
 export const softDelete = async (req: Request, res: Response) => {
   const user = await UserService.deleteUser(req.params.id, true);
-  user ? res.json({ message: parseMsg(i18n.PASS_REMOVE, 'user') }) : res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, 'user') });
+  user ? res.json({ message: parseMsg(i18n.PASS_REMOVE, MODULE) }) : res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, MODULE) });
 };

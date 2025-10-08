@@ -12,11 +12,11 @@ import { ROLES } from "../utils/constants";
 
 const router = express.Router();
 
-router.post("/", protect, roleAuth([ROLES.PUBLIC]), addStock);
-router.get("/", protect, roleAuth([ROLES.PUBLIC]), getStock);
-router.get("/:id", protect, roleAuth([ROLES.PUBLIC]), getStockItem);
-router.patch("/:id", protect, roleAuth([ROLES.PUBLIC]), setInventory);
-router.put("/:id", protect, roleAuth([ROLES.PUBLIC]), updateStock);
-router.delete("/:id", protect, roleAuth([ROLES.PUBLIC]), deleteStock);
+router.post("/", protect, roleAuth([ROLES.ADMIN, ROLES.PUBLIC]), addStock);
+router.get("/", protect, roleAuth([ROLES.ADMIN, ROLES.PUBLIC]), getStock);
+router.get("/:id", protect, roleAuth([ROLES.ADMIN, ROLES.PUBLIC]), getStockItem);
+router.patch("/:id", protect, roleAuth([ROLES.ADMIN, ROLES.PUBLIC]), setInventory);
+router.put("/:id", protect, roleAuth([ROLES.ADMIN, ROLES.PUBLIC]), updateStock);
+router.delete("/:id", protect, roleAuth([ROLES.ADMIN, ROLES.PUBLIC]), deleteStock);
 
 export default router;

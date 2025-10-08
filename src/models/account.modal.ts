@@ -57,7 +57,7 @@ const transactionSchema = new Schema<ITransaction, ITransactionModel, ITransacti
         mode: {
             type: String,
             required: true,
-            enum: ["CASH", "CARD", "UPI", "NET_BANKING", "CHEQUE"],
+            enum: ["CASH", "CARD", "UPI", "NET_BANKING", "CHEQUE", "PENDING"],
             uppercase: true,
         },
         millie: {
@@ -90,7 +90,7 @@ const transactionSchema = new Schema<ITransaction, ITransactionModel, ITransacti
     },
     {
         timestamps: false,
-        collection: "Transactions",
+        collection: "transactions",
         toJSON: { virtuals: true },
         toObject: { virtuals: true },
     }

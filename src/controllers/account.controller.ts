@@ -7,7 +7,7 @@ const MODULE = 'transaction';
 export const addTransaction = async (req: Request, res: Response): Promise<void> => {
     try {
         const current = await AccountService.addItem(req.body);
-        res.status(201).json({ message: parseMsg(i18n.PASS_POST, MODULE), current });
+        res.status(201).json({ message: parseMsg(i18n.PASS_POST, MODULE), data: current });
     } catch (error) {
         res.status(500).json({
             error: parseMsg(i18n.FAIL_POST, MODULE),
@@ -45,7 +45,7 @@ export const updateTransaction = async (req: Request, res: Response): Promise<vo
             res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, MODULE) });
             return;
         }
-        res.json({ message: parseMsg(i18n.PASS_UPDATE, MODULE), current });
+        res.json({ message: parseMsg(i18n.PASS_UPDATE, MODULE), data: current });
     } catch (error) {
         res.status(500).json({ error: parseMsg(i18n.FAIL_UPDATE, MODULE), details: (error as Error).message });
     }
@@ -54,12 +54,12 @@ export const updateTransaction = async (req: Request, res: Response): Promise<vo
 export const editTransaction = async (req: Request, res: Response): Promise<void> => {
     try {
         const id = String(req?.headers?.id || '');
-        const current = await AccountService.editItem(id, req.body);
+        const current = await AccountService.editItem(id, req?.body?.items || []);
         if (!current) {
             res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, MODULE) });
             return;
         }
-        res.json({ message: parseMsg(i18n.PASS_UPDATE, MODULE), current });
+        res.json({ message: parseMsg(i18n.PASS_UPDATE, MODULE), data: current });
     } catch (error) {
         res.status(500).json({ error: parseMsg(i18n.FAIL_UPDATE, MODULE), details: (error as Error).message });
     }

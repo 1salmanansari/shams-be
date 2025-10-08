@@ -10,13 +10,13 @@ export const addItem = async (data: IAdd) => {
 export const getItems = async (isLite: boolean) => {
     const project = isLite ? PROJECT_STOCK_LITE : PROJECT_STOCK_BRIEF;
     return {
-        list: await Stock.find().projection(project).lean(),
+        list: await Stock.find({}, project).lean(),
     };
 };
 
 export const getItemById = async (id: string, isLite?: Boolean) => {
     const project = isLite ? PROJECT_STOCK_LITE : PROJECT_STOCK_BRIEF;
-    return await Stock.findOne({ id }).projection(project);
+    return await Stock.findOne({ id }, project).lean();
 };
 
 export const updateQty = async (id: string, qty: number) => {
