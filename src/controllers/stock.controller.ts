@@ -1,14 +1,11 @@
 import { Request, Response } from "express";
 import * as StockService from "../services/stock.service";
-import { io } from "../server";
 import i18n from "../i18n/en";
-import { ADD_CUSTOMER } from "socket/events/emit";
 import { parseMsg } from "utils/helper";
 
 export const addStock = async (req: Request, res: Response): Promise<void> => {
     try {
         const current = await StockService.addItem(req.body);
-        io.emit(ADD_CUSTOMER, current);
         res.status(201).json({ message: parseMsg(i18n.PASS_POST, 'stock item'), current });
     } catch (error) {
         res.status(500).json({

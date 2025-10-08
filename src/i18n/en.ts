@@ -10,6 +10,8 @@ export default {
     FAIL_DELETE: "Failed to delete <data>",
     FAIL_POST: "Failed: to add <data>",
     FAIL_EMPTY: "Failed: <Data> not found",
+    // ACCOUNT
+    FAIL_ACCOUNT_EMPTY: "At least one item is required",
     // USERS
     FAIL_USER_POST: "User creation failed",
     FAIL_USER_CRED: "Invalid credentials",
