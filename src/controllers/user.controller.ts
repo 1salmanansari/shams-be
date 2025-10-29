@@ -2,6 +2,9 @@ import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import * as UserService from "../services/user.service";
+import * as CustomerService from "../services/customer.service";
+import * as StockService from "../services/stock.service";
+import * as AccountService from "../services/account.service";
 import { ENV } from "../config/env";
 import i18n from "../i18n/en";
 import { parseMsg } from "utils/helper";
@@ -34,7 +37,15 @@ export const loginUser = async (req: Request, res: Response) => {
 
     res.json({
       message: i18n.PASS_LOGIN,
-      token: `Bearer ${token}`
+      data: {
+        profile: {
+          id: user.id, email: user.email, role: user.role,
+          firstName: user.firstName, lastName: user.lastName,
+          lastLogin: user.lastLogin, DOB: user.DOB,
+          mobile: user.mobile,
+        },
+        token: `Bearer ${token}`
+      }
     });
   } catch (error) {
     res.status(500).json({ error: i18n.FAIL_USER_LOGIN, details: error });
@@ -76,6 +87,19 @@ export const logoutUser = async (req: Request, res: Response) => {
   }
 };
 
+export const getOverview = async (_req: Request, res: Response) => {
+  const customers = await CustomerService.getCustomers({ page: 1, limit: 5, isLite: true });
+  const stock = await StockService.overview();
+  const transactions = await AccountService.overview();
+
+  res.json({
+    data: {
+      transactions: transactions?.list || [],
+      stock: stock?.list || [],
+      customers: customers?.list || [],
+    }
+  });
+};
 
 export const getUsers = async (_req: Request, res: Response) => {
   const users = await UserService.getAllUsers();

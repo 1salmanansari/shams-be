@@ -4,10 +4,10 @@ import helmet from "helmet";
 import router from "./routes";
 import { ENV } from "./config/env";
 import i18n from "./i18n/en";
-import { logData } from "utils/helper";
 
 const app = express();
-const allowedOrigins = ENV.ORIGIN === '*' ? true : ENV.ORIGIN;
+const avoidOrigin = Boolean(ENV.LOCAL) || ENV.ORIGIN === '*';
+const allowedOrigins = avoidOrigin || ENV.ORIGIN;
 
 // 🛡️ Set security headers
 app.use(helmet());
@@ -21,12 +21,9 @@ app.use(cors({
 // 🚫 Block other origins manually (only if not using wildcard)
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  logData('Origin', origin)
 
   // Skip origin check if LOCAL=true or ORIGIN=*
-  if (Boolean(ENV.LOCAL) || ENV.ORIGIN === '*') {
-    return next();
-  }
+  if (avoidOrigin) return next();
 
   if (origin && origin !== ENV.ORIGIN) {
     res.status(403).json({ message: i18n.FAIL_ORIGIN });

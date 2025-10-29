@@ -1,18 +1,15 @@
 import { IAdd, IEdit, ITransactionItem, ITransactionMatch } from "interfaces/account";
 import Acc from "../models/account.modal";
-import { logData } from "utils/helper";
+import { PipelineStage } from "mongoose";
 
 export const addItem = async (data: IAdd) => {
     const customer = new Acc(data);
     return await customer.save();
 };
 
-export const getItem = async (cond: ITransactionMatch) => {
-    const transactions = await Acc.aggregate([
-        // 1️⃣ Match Transactions
+export const getItem = async (cond: ITransactionMatch, limit?: number) => {
+    const pipeline: PipelineStage[] = [
         { $match: { ...cond } },
-
-        // 2️⃣ Lookup Client Details
         {
             $lookup: {
                 from: "customers",
@@ -25,8 +22,6 @@ export const getItem = async (cond: ITransactionMatch) => {
             },
         },
         { $unwind: { path: "$clientDetails", preserveNullAndEmptyArrays: true } },
-
-        // 3️⃣ Lookup Items from Stock (with cost and name)
         {
             $lookup: {
                 from: "stocks",
@@ -34,12 +29,10 @@ export const getItem = async (cond: ITransactionMatch) => {
                 foreignField: "id",
                 as: "itemDetails",
                 pipeline: [
-                    { $project: { _id: 0, id: 1, name: 1, cost: 1 } } // ✅ include real cost
+                    { $project: { _id: 0, id: 1, name: 1, cost: 1 } }
                 ]
             },
         },
-
-        // 4️⃣ Enrich items with name, cost, and gross (qty * rate)
         {
             $addFields: {
                 items: {
@@ -76,8 +69,6 @@ export const getItem = async (cond: ITransactionMatch) => {
                 },
             },
         },
-
-        // 5️⃣ Calculate Totals using gross
         {
             $addFields: {
                 clientName: "$clientDetails.name",
@@ -90,8 +81,6 @@ export const getItem = async (cond: ITransactionMatch) => {
                 },
             },
         },
-
-        // 6️⃣ Add GST total
         {
             $addFields: {
                 totalAmount: {
@@ -102,8 +91,6 @@ export const getItem = async (cond: ITransactionMatch) => {
                 },
             },
         },
-
-        // 7️⃣ Project Final Fields
         {
             $project: {
                 _id: 0,
@@ -112,12 +99,17 @@ export const getItem = async (cond: ITransactionMatch) => {
                 itemDetails: 0,
             },
         },
-
-        // 8️⃣ Sort by Created Date
         { $sort: { createdAt: -1 } },
-    ]);
+    ];
 
+    if (limit && limit > 0) pipeline.push({ $limit: limit });
+
+    const transactions = await Acc.aggregate(pipeline);
     return { list: transactions };
+};
+
+export const overview = async () => {
+    return await getItem({ isDelete: false }, 5);
 };
 
 export const getItems = async () => {
