@@ -19,7 +19,7 @@ export const addTransaction = async (req: Request, res: Response): Promise<void>
 export const getTransactions = async (_req: Request, res: Response): Promise<void> => {
     try {
         const current = await AccountService.getItems();
-        res.json(current);
+        res.json({ data: current });
     } catch (error) {
         res.status(500).json({ error: parseMsg(i18n.FAIL_FETCH, MODULE), details: (error as Error).message });
     }
@@ -32,7 +32,7 @@ export const getTransaction = async (req: Request, res: Response): Promise<void>
             res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, MODULE) });
             return;
         }
-        res.json(current);
+        res.json({ data: current });
     } catch (error) {
         res.status(500).json({ error: parseMsg(i18n.FAIL_FETCH, MODULE), details: (error as Error).message });
     }

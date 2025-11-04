@@ -11,6 +11,7 @@ export const getItems = async (isLite: boolean) => {
     const project = isLite ? PROJECT_STOCK_LITE : PROJECT_STOCK_BRIEF;
     return {
         list: await Stock.find({}, project).lean(),
+        count: await Stock.countDocuments()
     };
 };
 

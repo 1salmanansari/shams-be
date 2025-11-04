@@ -100,12 +100,22 @@ export const getItem = async (cond: ITransactionMatch, limit?: number) => {
             },
         },
         { $sort: { createdAt: -1 } },
+        {
+            $facet: {
+                list: limit && limit > 0 ? [{ $limit: limit }] : [],
+                count: [{ $count: "total" }],
+            },
+        },
+        {
+            $project: {
+                list: 1,
+                total: { $ifNull: [{ $arrayElemAt: ["$count.total", 0] }, 0] },
+            },
+        },
     ];
 
-    if (limit && limit > 0) pipeline.push({ $limit: limit });
-
-    const transactions = await Acc.aggregate(pipeline);
-    return { list: transactions };
+    const [result] = await Acc.aggregate(pipeline);
+    return { list: result.list, count: result.total };
 };
 
 export const overview = async () => {

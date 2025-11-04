@@ -28,10 +28,10 @@ export const getCustomers = async (req: Request, res: Response): Promise<void> =
 
         if (isAll) {
             const current = await CustomerService.getAllCustomers(isLite);
-            res.json(current);
+            res.json({ data: current });
         } else {
             const current = await CustomerService.getCustomers({ page, limit, isLite });
-            res.json(current);
+            res.json({ data: current });
         }
     } catch (error) {
         res.status(500).json({ error: parseMsg(i18n.FAIL_FETCH, MODULE), details: (error as Error).message });
@@ -46,7 +46,7 @@ export const getCustomer = async (req: Request, res: Response): Promise<void> =>
             res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, MODULE) });
             return;
         }
-        res.json(current);
+        res.json({ data: current });
     } catch (error) {
         res.status(500).json({ error: parseMsg(i18n.FAIL_FETCH, MODULE), details: (error as Error).message });
     }

@@ -14,7 +14,7 @@ export const registerUser = async (req: Request, res: Response) => {
   try {
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
     const user = await UserService.createUser({ ...req.body, password: hashedPassword });
-    res.status(201).json({ message: parseMsg(i18n.PASS_POST, MODULE), user });
+    res.status(201).json({ message: parseMsg(i18n.PASS_POST, MODULE), data: user });
   } catch (error) {
     res.status(500).json({ error: i18n.FAIL_USER_POST, details: error });
   }
@@ -102,26 +102,26 @@ export const getOverview = async (_req: Request, res: Response) => {
 };
 
 export const getUsers = async (_req: Request, res: Response) => {
-  const users = await UserService.getAllUsers();
-  res.json(users);
+  const current = await UserService.getAllUsers();
+  res.json({ data: current });
 };
 
 export const getUser = async (req: Request, res: Response) => {
-  const user = await UserService.getUserById(req.params.id);
-  user ? res.json(user) : res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, MODULE) });
+  const current = await UserService.getUserById(req.params.id);
+  current ? res.json({ data: current }) : res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, MODULE) });
 };
 
 export const updateUser = async (req: Request, res: Response) => {
-  const user = await UserService.updateUser(req.params.id, req.body);
-  user ? res.json(user) : res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, MODULE) });
+  const current = await UserService.updateUser(req.params.id, req.body);
+  current ? res.json({ data: current }) : res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, MODULE) });
 };
 
 export const hardDelete = async (req: Request, res: Response) => {
-  const user = await UserService.deleteUser(req.params.id);
-  user ? res.json({ message: parseMsg(i18n.PASS_REMOVE, MODULE) }) : res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, MODULE) });
+  const current = await UserService.deleteUser(req.params.id);
+  current ? res.json({ message: parseMsg(i18n.PASS_REMOVE, MODULE) }) : res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, MODULE) });
 };
 
 export const softDelete = async (req: Request, res: Response) => {
-  const user = await UserService.deleteUser(req.params.id, true);
-  user ? res.json({ message: parseMsg(i18n.PASS_REMOVE, MODULE) }) : res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, MODULE) });
+  const current = await UserService.deleteUser(req.params.id, true);
+  current ? res.json({ message: parseMsg(i18n.PASS_REMOVE, MODULE) }) : res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, MODULE) });
 };

@@ -19,13 +19,14 @@ export const getCustomers = async ({ page = 0, limit = 0, isLite }: IGet) => {
     const currentPage = Math.max(1, page || 1);
     const currentLimit = Math.max(1, limit || 10);
     const skip = (currentPage - 1) * currentLimit;
+    const count = await Customer.countDocuments();
 
     if (!page && !limit) {
-        const count = await Customer.countDocuments();
         const totalPages = Math.ceil(count / currentLimit);
         const data = await Customer.find({}, project).skip(skip).limit(currentLimit).lean();
         return {
             list: data,
+            count,
             page: currentPage,
             pages: totalPages,
         };
@@ -34,6 +35,7 @@ export const getCustomers = async ({ page = 0, limit = 0, isLite }: IGet) => {
     const data = await Customer.find({}, project).skip(skip).limit(currentLimit).lean();
     return {
         list: data,
+        count,
         page: currentPage,
     };
 
