@@ -40,7 +40,7 @@ export const getTransaction = async (req: Request, res: Response): Promise<void>
 
 export const updateTransaction = async (req: Request, res: Response): Promise<void> => {
     try {
-        const current = await AccountService.updateItem(req.body);
+        const current = await AccountService.updateItem({ id: req.params.id, ...req.body });
         if (!current) {
             res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, MODULE) });
             return;

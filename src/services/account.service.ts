@@ -29,7 +29,7 @@ export const getItem = async (cond: ITransactionMatch, limit?: number) => {
                 foreignField: "id",
                 as: "itemDetails",
                 pipeline: [
-                    { $project: { _id: 0, id: 1, name: 1, cost: 1 } }
+                    { $project: { _id: 0, id: 1, name: 1, scale: 1, cost: 1 } }
                 ]
             },
         },
@@ -60,6 +60,7 @@ export const getItem = async (cond: ITransactionMatch, limit?: number) => {
                                     qty: "$$txnItem.qty",
                                     rate: "$$txnItem.rate",
                                     name: "$$matchedItem.name",
+                                    scale: "$$matchedItem.scale",
                                     cost: "$$matchedItem.cost",
                                     gross: { $multiply: ["$$txnItem.qty", "$$txnItem.rate"] },
                                 },

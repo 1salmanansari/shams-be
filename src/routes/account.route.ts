@@ -16,7 +16,7 @@ router.post("/", protect, roleAuth([ROLES.ADMIN, ROLES.PUBLIC]), addTransaction)
 router.get("/", protect, roleAuth([ROLES.ADMIN, ROLES.PUBLIC]), getTransactions);
 router.get("/:id", protect, roleAuth([ROLES.ADMIN, ROLES.PUBLIC]), getTransaction);
 router.patch("/", protect, roleAuth([ROLES.ADMIN, ROLES.PUBLIC]), editTransaction);
-router.put("/", protect, roleAuth([ROLES.ADMIN, ROLES.PUBLIC]), updateTransaction);
+router.put("/:id", protect, roleAuth([ROLES.ADMIN, ROLES.PUBLIC]), updateTransaction);
 router.delete("/:id", protect, roleAuth([ROLES.ADMIN, ROLES.PUBLIC]), deleteTransation);
 
 export default router;
