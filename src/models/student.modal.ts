@@ -1,0 +1,25 @@
+import mongoose from "mongoose";
+import { v4 as uuidv4 } from "uuid";
+
+const studentSchema = new mongoose.Schema({
+	id: { type: String, default: uuidv4, unique: true, index: true },
+	enrollmentNo: { type: String, required: true, unique: true },
+	schoolId: { type: String, required: true, index: true },
+	classId: { type: String, required: true },
+	firstName: { type: String, required: true },
+	lastName: { type: String },
+	gender: { type: String, enum: ["Male", "Female", "Other"] },
+	mobile: { type: String, required: true },
+	email: { type: String, unique: true, lowercase: true, trim: true, default: '' },
+	dob: { type: String },
+	address: { type: String, default: '' },
+	isActive: { type: Boolean, default: true },
+	isDelete: { type: Boolean, default: false },
+	createdAt: { type: Number, default: () => Date.now(), required: true },
+	updatedAt: { type: Number, default: () => Date.now(), required: true },
+});
+
+studentSchema.index({ firstName: 1, lastName: 1 });
+studentSchema.index({ enrollmentNo: 1 });
+
+export default mongoose.model("Student", studentSchema);
