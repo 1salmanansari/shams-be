@@ -41,15 +41,40 @@ export const createFeeRecord = async (data: any) => {
 export const addPayment = async (
 	studentId: string,
 	academicYear: string,
-	payment: any
+	payment: {
+		amount: number;
+		mode?: string;
+		note?: string;
+	}
 ) => {
-	const fee = await Fee.findOne({ studentId, academicYear });
-	if (!fee) throw new Error("Fee record not found.");
+	let fee = await Fee.findOne({ studentId, academicYear });
+
+	if (!fee) {
+		const student = await Student.findOne({ id: studentId });
+		if (!student) throw new Error("Student not found.");
+
+		const studentClass = await Class.findOne({ id: student.classId });
+		if (!studentClass) throw new Error("Class not found for student.");
+
+		fee = new Fee({
+			id: uuidv4(),
+			studentId,
+			classId: student.classId,
+			schoolId: student.schoolId,
+			academicYear,
+			totalAmount: studentClass.fee || 0,
+			paidAmount: 0,
+			pendingAmount: studentClass.fee || 0,
+			payments: [],
+			isActiveYear: true,
+			createdAt: Date.now(),
+			updatedAt: Date.now(),
+		});
+	}
 
 	fee.paidAmount += payment.amount;
 	fee.pendingAmount = Math.max(fee.totalAmount - fee.paidAmount, 0);
 
-	// ✅ Record this payment in history
 	fee.payments.push({
 		id: uuidv4(),
 		amount: payment.amount,
@@ -59,8 +84,23 @@ export const addPayment = async (
 	});
 
 	fee.updatedAt = Date.now();
-	return await fee.save();
+	await fee.save();
+
+	return {
+		success: true,
+		message: "Payment added successfully.",
+		data: {
+			studentId: fee.studentId,
+			academicYear: fee.academicYear,
+			totalAmount: fee.totalAmount,
+			paidAmount: fee.paidAmount,
+			pendingAmount: fee.pendingAmount,
+			payments: fee.payments,
+		},
+		isNewRecord: !fee._id, // if created this time
+	};
 };
+
 
 export const getFeeSummary = async (studentId: string, academicYear: string) => {
 	const fee = await Fee.findOne({ studentId, academicYear });

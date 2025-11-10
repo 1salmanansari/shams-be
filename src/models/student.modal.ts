@@ -8,7 +8,7 @@ const studentSchema = new mongoose.Schema({
 	classId: { type: String, required: true },
 	firstName: { type: String, required: true },
 	lastName: { type: String },
-	gender: { type: String, enum: ["Male", "Female", "Other"] },
+	gender: { type: String, enum: ["MALE", "FEMALE", "OTHER"] },
 	mobile: { type: String, required: true },
 	email: { type: String, unique: true, lowercase: true, trim: true, default: '' },
 	dob: { type: String },
