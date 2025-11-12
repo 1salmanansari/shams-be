@@ -1,12 +1,13 @@
 import Student from "../models/student.modal";
 import Class from "../models/class.modal";
 import School from "../models/school.modal";
-import Fee from "../models/fee.modal";
 import { PipelineStage } from "mongoose";
+import { IStudent } from "../types/common";
+import { fetchByPagination } from "./fee.service";
 
-export const createStudent = async (data: any) => new Student(data).save();
+export const add = async (data: IStudent) => new Student(data).save();
 
-export const getStudents = async (options?: {
+export const get = async (options?: {
 	id?: string;
 	schoolId?: string;
 	classId?: string;
@@ -33,40 +34,21 @@ export const getStudents = async (options?: {
 		},
 		{ $unwind: { path: "$classInfo", preserveNullAndEmptyArrays: true } },
 		{
-			$lookup: {
-				from: "fees",
-				let: { studentId: "$id" },
-				pipeline: [
-					{ $match: { $expr: { $eq: ["$studentId", "$$studentId"] } } },
-					{
-						$group: {
-							_id: null,
-							totalPaid: { $sum: { $ifNull: ["$paidAmount", 0] } },
-							totalPending: { $sum: { $ifNull: ["$pendingAmount", 0] } },
-						},
-					},
-				],
-				as: "feeSummary",
-			},
-		},
-		{ $unwind: { path: "$feeSummary", preserveNullAndEmptyArrays: true } },
-		{
 			$addFields: {
 				name: { $concat: ["$firstName", " ", "$lastName"] },
 				class: "$classInfo.name",
 				section: "$classInfo.section",
 				fee: "$classInfo.fee",
-				paid: { $ifNull: ["$feeSummary.totalPaid", 0] },
 				pending: {
 					$cond: {
 						if: { $gt: ["$classInfo.fee", 0] },
 						then: {
 							$max: [
-								{ $subtract: ["$classInfo.fee", { $ifNull: ["$feeSummary.totalPaid", 0] }] },
+								{ $subtract: ["$classInfo.fee", { $ifNull: ["$paid", 0] }] },
 								0,
 							],
 						},
-						else: { $ifNull: ["$feeSummary.totalPending", 0] },
+						else: { $ifNull: ["$classInfo.fee", 0] },
 					},
 				},
 			},
@@ -80,12 +62,12 @@ export const getStudents = async (options?: {
 				firstName: 1,
 				lastName: 1,
 				class: 1,
+				classId: 1,
 				section: 1,
 				gender: 1,
 				mobile: 1,
 				email: 1,
 				schoolId: 1,
-				classId: 1,
 				paid: 1,
 				fee: 1,
 				pending: 1,
@@ -93,7 +75,7 @@ export const getStudents = async (options?: {
 				createdAt: 1,
 			},
 		},
-		{ $sort: { createdAt: -1 } },
+		{ $sort: { updatedAt: -1 } },
 	];
 
 	if (page > 0) {
@@ -116,20 +98,46 @@ export const getStudents = async (options?: {
 	return {
 		list: data,
 		count: page ? 0 : data.length,
-		page: 0,
+		page,
 	};
 };
 
-export const getStudentById = async (id: string) => Student.findOne({ id, isDelete: false });
+export const getDetail = async (id: string, activeYear?: string) => {
+	const student = await Student.findOne({ id }).lean();
+	if (!student) throw Error("FAIL: Student not found");
 
-export const updateStudent = async (id: string, data: any) =>
-	Student.findOneAndUpdate({ id }, { ...data, updatedAt: Date.now() }, { new: true });
+	const sec = await Class.findOne({ id: student.classId }).select("name section").lean();
+	if (!sec) throw new Error("FAIL: Class not found");
 
-export const deleteStudent = async (id: string) =>
-	Student.findOneAndUpdate({ id }, { isDelete: true, isActive: false, updatedAt: Date.now() }, { new: true });
+	const school = await School.findOne({ id: student.schoolId }).select("name").lean();
+	if (!school) throw new Error("FAIL: School not found");
 
-// 🔍 Search by name, mobile, or enrollment
-export const searchStudents = async (query: string) => {
+	if (activeYear) {
+		const { list } = await fetchByPagination({ detail: '1', studentId: id, schoolId: student.schoolId, classId: student.classId, academicYear: activeYear });
+		return {
+			...student,
+			class: sec.name,
+			section: sec.section,
+			school: school.name,
+			statement: list || [],
+		};
+	}
+
+	return {
+		...student,
+		class: sec.name,
+		section: sec.section,
+		school: school.name,
+	};
+};
+
+export const set = async (id: string, data: IStudent) => Student.findOneAndUpdate({ id }, { ...data, updatedAt: Date.now() }, { new: true });
+
+export const removeCloud = async (id: string) => Student.findOneAndUpdate({ id }, { isDelete: true, isActive: false, updatedAt: Date.now() }, { new: true });
+
+export const remove = async (id: string) => Student.findOneAndDelete({ id });
+
+export const search = async (query: string) => {
 	const regex = new RegExp(query, "i");
 
 	const data = await Student.aggregate([
@@ -183,32 +191,3 @@ export const searchStudents = async (query: string) => {
 	return { list: data };
 };
 
-
-// 📊 Get detailed student + class + school + fee summary
-export const getStudentDetail = async (studentId: string) => {
-	const student = await Student.findOne({ id: studentId, isDelete: false });
-	if (!student) return null;
-
-	const classInfo = await Class.findOne({ id: student.classId });
-	const school = await School.findOne({ id: student.schoolId });
-	const currentYear = new Date().getFullYear();
-
-	const fees = await Fee.aggregate([
-		{ $match: { studentId, year: currentYear } },
-		{
-			$group: {
-				_id: null,
-				totalPaid: { $sum: "$paidAmount" },
-				totalPending: { $sum: "$dueAmount" },
-			},
-		},
-	]);
-
-	return {
-		student,
-		classInfo,
-		school,
-		totalPaid: fees[0]?.totalPaid || 0,
-		totalPending: fees[0]?.totalPending || 0,
-	};
-};

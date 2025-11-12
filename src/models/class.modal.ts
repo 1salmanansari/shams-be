@@ -14,7 +14,5 @@ const classSchema = new mongoose.Schema({
 	updatedAt: { type: Number, default: () => Date.now(), required: true },
 });
 
-classSchema.index({ name: 1, schoolId: 1 });
-
 export default mongoose.model("Class", classSchema);
 

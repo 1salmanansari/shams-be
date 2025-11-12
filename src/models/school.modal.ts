@@ -21,6 +21,4 @@ const schoolSchema = new mongoose.Schema({
 	updatedAt: { type: Number, default: () => Date.now(), required: true },
 });
 
-schoolSchema.index({ name: 1 });
-
 export default mongoose.model("School", schoolSchema);

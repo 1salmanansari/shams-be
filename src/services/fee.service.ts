@@ -1,161 +1,166 @@
+import mongoose from "mongoose";
+import School from "../models/school.modal";
 import Fee from "../models/fee.modal";
 import Class from "../models/class.modal";
 import Student from "../models/student.modal";
 import { v4 as uuidv4 } from "uuid";
+import { IFee, IGet } from "../types/common";
 
-export const createFeeRecord = async (data: any) => {
-	const existing = await Fee.findOne({
-		studentId: data.studentId,
-		academicYear: data.academicYear,
-	});
-	if (existing)
-		throw new Error("Fee record already exists for this academic year.");
+export const create = async ({ inAdvance = false, ...payload }: IFee) => {
+	const student = await Student.findOne({ id: payload.studentId });
+	if (!student) throw new Error("FAIL: Student not found");
 
-	const initialPaid = data.paidAmount || 0;
-	const pendingAmount = data.totalAmount - initialPaid;
+	const sec = await Class.findOne({ id: payload.classId });
+	if (!sec) throw new Error("FAIL: Class not found");
 
-	// ✅ Include initial payment in the payments history
-	const initialPayments =
-		initialPaid > 0
-			? [
-				{
-					id: uuidv4(),
-					amount: initialPaid,
-					date: Date.now(),
-					mode: data.mode || "CASH",
-					note: data.remarks || "Initial payment at record creation",
-				},
-			]
-			: [];
-
-	const record = new Fee({
-		...data,
-		paidAmount: initialPaid,
-		pendingAmount,
-		payments: initialPayments,
-	});
-
-	return await record.save();
-};
-
-export const addPayment = async (
-	studentId: string,
-	academicYear: string,
-	payment: {
-		amount: number;
-		mode?: string;
-		note?: string;
+	let academicYear = payload.academicYear;
+	if (inAdvance) {
+		const [start] = academicYear.split("-").map(Number);
+		const nextStart = start + 1;
+		academicYear = `${nextStart}-${nextStart + 1}`;
 	}
-) => {
-	let fee = await Fee.findOne({ studentId, academicYear });
 
-	if (!fee) {
-		const student = await Student.findOne({ id: studentId });
-		if (!student) throw new Error("Student not found.");
+	const session = await mongoose.startSession();
+	session.startTransaction();
 
-		const studentClass = await Class.findOne({ id: student.classId });
-		if (!studentClass) throw new Error("Class not found for student.");
-
-		fee = new Fee({
+	try {
+		const feeRecord = new Fee({
 			id: uuidv4(),
-			studentId,
-			classId: student.classId,
-			schoolId: student.schoolId,
+			...payload,
 			academicYear,
-			totalAmount: studentClass.fee || 0,
-			paidAmount: 0,
-			pendingAmount: studentClass.fee || 0,
-			payments: [],
-			isActiveYear: true,
 			createdAt: Date.now(),
 			updatedAt: Date.now(),
 		});
+
+		const saved = await feeRecord.save({ session });
+
+		if (!inAdvance) {
+			const updateRes = await Student.findOneAndUpdate(
+				{ id: student.id },
+				{ $inc: { paid: payload.amount } },
+				{ session, new: true }
+			);
+
+			if (!updateRes) {
+				throw new Error("FAIL: Could not update student payment record");
+			}
+		}
+
+		await session.commitTransaction();
+		session.endSession();
+
+		return saved;
+	} catch (err) {
+		await session.abortTransaction();
+		session.endSession();
+		throw err;
 	}
+};
 
-	fee.paidAmount += payment.amount;
-	fee.pendingAmount = Math.max(fee.totalAmount - fee.paidAmount, 0);
 
-	fee.payments.push({
-		id: uuidv4(),
-		amount: payment.amount,
-		date: Date.now(),
-		mode: payment.mode || "CASH",
-		note: payment.note || "",
-	});
+export const fetch = async (payload: IGet) => Fee.find({ ...payload });
 
-	fee.updatedAt = Date.now();
-	await fee.save();
+export const fetchById = async (id: string) => {
+	const data = await Fee.findOne({ id });
+	if (!data) throw new Error("FAIL: Record not found");
+
+	const student = await Student.findOne({ id: data.studentId });
+	if (!student) throw new Error("FAIL: Student not found");
+
+	const sec = await Class.findOne({ id: data.classId });
+	if (!sec) throw new Error("FAIL: Class not found");
+
+	const school = await School.findOne({ id: data.studentId });
+	if (!school) throw new Error("FAIL: School not found");
 
 	return {
-		success: true,
-		message: "Payment added successfully.",
-		data: {
-			studentId: fee.studentId,
-			academicYear: fee.academicYear,
-			totalAmount: fee.totalAmount,
-			paidAmount: fee.paidAmount,
-			pendingAmount: fee.pendingAmount,
-			payments: fee.payments,
-		},
-		isNewRecord: !fee._id, // if created this time
+		...data,
+		school: school.name,
+		student: `${student.firstName} ${student.lastName}`,
+		class: sec.name,
 	};
 };
 
+export const fetchByPagination = async ({ page = 1, limit = 10, detail, ...rest }: IGet) => {
+	const skip = (page - 1) * limit;
+	const baseQuery = { ...rest };
 
-export const getFeeSummary = async (studentId: string, academicYear: string) => {
-	const fee = await Fee.findOne({ studentId, academicYear });
-	if (fee) {
-		return {
-			studentId: fee.studentId,
-			academicYear: fee.academicYear,
-			total: fee.totalAmount,
-			paid: fee.paidAmount,
-			pending: fee.pendingAmount,
-			payments: fee.payments,
-			isNewRecord: false
-		};
+	let list = await Fee.find(baseQuery).skip(skip).limit(limit).lean();
+	if (!list.length) return { list: [], count: 0, page, pages: 0 };
+
+	if (detail) {
+		const isFromSchool = !!rest.schoolId && !rest.classId && !rest.studentId;
+		const isFromClass = !!rest.classId && !rest.studentId;
+
+		if (isFromSchool) {
+			const classIds = [...new Set(list.map((x) => x.classId))];
+			const studentIds = [...new Set(list.map((x) => x.studentId))];
+
+			const [students, classes] = await Promise.all([
+				Student.find({ id: { $in: studentIds } }).select("id firstName lastName").lean(),
+				Class.find({ id: { $in: classIds } }).select("id name section").lean(),
+			]);
+
+			const mapStudent = new Map(students.map((s) => [s.id, `${s.firstName} ${s.lastName}`]));
+			const mapClass = new Map(classes.map((c) => [c.id, { name: c.name, section: c.section }]));
+
+			list = list.map((f) => ({
+				...f,
+				student: mapStudent.get(f.studentId) || "",
+				class: mapClass.get(f.classId)?.name || "",
+				section: mapClass.get(f.classId)?.section || "",
+			}));
+		}
+
+		if (isFromClass) {
+			const [school, students] = await Promise.all([
+				School.findOne({ id: rest.schoolId }).select("id name").lean(),
+				Student.find({ id: { $in: list.map((x) => x.studentId) } }).select("id firstName lastName").lean(),
+			]);
+
+			const studentMap = new Map(students.map((s) => [s.id, `${s.firstName} ${s.lastName}`]));
+
+			list = list.map((f) => ({
+				...f,
+				school: school?.name || "",
+				student: studentMap.get(f.studentId) || "",
+			}));
+		}
+
+		if (detail === 'ALL') {
+			const schoolIds = [...new Set(list.map((x) => x.schoolId))];
+			const classIds = [...new Set(list.map((x) => x.classId))];
+			const studentIds = [...new Set(list.map((x) => x.studentId))];
+
+			const [students, classes, schools] = await Promise.all([
+				Student.find({ id: { $in: studentIds } }).select("id firstName lastName").lean(),
+				Class.find({ id: { $in: classIds } }).select("id name section").lean(),
+				School.find({ id: { $in: schoolIds } }).select("id name").lean(),
+			]);
+
+			const mapSchool = new Map(schools.map((s) => [s.id, s.name]));
+			const mapStudent = new Map(students.map((s) => [s.id, `${s.firstName} ${s.lastName}`]));
+			const mapClass = new Map(classes.map((c) => [c.id, { name: c.name, section: c.section }]));
+
+			list = list.map((f) => ({
+				...f,
+				student: mapStudent.get(f.studentId) || "",
+				class: mapClass.get(f.classId)?.name || "",
+				section: mapClass.get(f.classId)?.section || "",
+				school: mapSchool.get(f.schoolId) || "",
+			}));
+		}
 	}
 
-	const student = await Student.findOne({ id: studentId });
-	if (student) {
-		const studentClass = await Class.findOne({ id: student.classId });
-		return {
-			studentId,
-			academicYear,
-			total: studentClass?.fee || 0,
-			paid: 0,
-			pending: studentClass?.fee || 0,
-			payments: [],
-			isNewRecord: true
-		};
-	}
+	const count = page === 1 ? await Fee.countDocuments(baseQuery) : 0;
+	const pages = page === 1 ? Math.ceil(count / limit) : undefined;
 
-	throw new Error("No fee record found for student.");
+	return { list, count, page, pages };
 };
 
-export const resetFeesForNewYear = async ({ prev, next }: { prev: string; next: string; }) => {
-	const fees = await Fee.find({ academicYear: prev });
 
-	for (const record of fees) {
-		await Fee.create({
-			studentId: record.studentId,
-			classId: record.classId,
-			schoolId: record.schoolId,
-			academicYear: next,
-			totalAmount: record.totalAmount,
-			paidAmount: 0,
-			pendingAmount: record.totalAmount,
-			payments: [],
-			isActiveYear: true,
-		});
-	}
+export const update = async (id: string, payload: IFee) => Fee.findOneAndUpdate({ id }, { ...payload, updatedAt: Date.now() }, { new: true });
 
-	await Fee.updateMany({ academicYear: prev }, { isActiveYear: false });
-};
+export const remove = async (id: string) => Fee.findOneAndDelete({ id });
 
-export const get = async () => {
-	const current = await Fee.find({});
-	return {
-		list: current
-	};
-};
+export const removeVirtual = async (id: string) => Fee.findOneAndUpdate({ id }, { isDelete: true, isActive: false, updatedAt: Date.now() }, { new: true });

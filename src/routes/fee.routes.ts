@@ -5,10 +5,10 @@ import { ROLES } from "../utils/constants";
 
 const router = express.Router();
 
-router.post("/", protect, roleAuth([ROLES.ADMIN]), FeeController.createFeeRecord);
-router.get("/", protect, roleAuth([ROLES.ADMIN]), FeeController.getAll);
-router.post("/:studentId/:academicYear/payment", protect, roleAuth([ROLES.ADMIN, ROLES.TEACHER]), FeeController.addPayment);
-router.get("/:studentId/:academicYear", protect, roleAuth([ROLES.ADMIN, ROLES.TEACHER]), FeeController.getFeeSummary);
-router.post("/reset", protect, roleAuth([ROLES.ADMIN]), FeeController.resetFees);
+router.post("/", protect, roleAuth([ROLES.ADMIN]), FeeController.add);
+router.get("/", protect, roleAuth([ROLES.ADMIN]), FeeController.get);
+router.get("/:id", protect, roleAuth([ROLES.ADMIN]), FeeController.getDetail);
+router.put("/:id", protect, roleAuth([ROLES.ADMIN]), FeeController.set);
+router.delete("/:id", protect, roleAuth([ROLES.ADMIN]), FeeController.remove);
 
 export default router;

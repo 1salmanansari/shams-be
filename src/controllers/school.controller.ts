@@ -6,9 +6,9 @@ import { ADD_SCHOOL } from "socket/events/emit";
 import { parseMsg } from "utils/helper";
 const MODULE = 'school';
 
-export const createSchool = async (req: Request, res: Response): Promise<void> => {
+export const create = async (req: Request, res: Response): Promise<void> => {
 	try {
-		const school = await SchoolService.createSchool(req.body);
+		const school = await SchoolService.add(req.body);
 		io.emit(ADD_SCHOOL, school);
 		res.status(201).json({ message: parseMsg(i18n.PASS_POST, MODULE), data: school });
 	} catch (error) {
@@ -19,18 +19,19 @@ export const createSchool = async (req: Request, res: Response): Promise<void> =
 	}
 };
 
-export const getSchools = async (_req: Request, res: Response): Promise<void> => {
+export const fetch = async (_req: Request, res: Response): Promise<void> => {
 	try {
-		const schools = await SchoolService.getAllSchools();
+		const schools = await SchoolService.get();
 		res.json({ data: schools });
 	} catch (error) {
 		res.status(500).json({ error: parseMsg(i18n.FAIL_FETCH, MODULE), details: (error as Error).message });
 	}
 };
 
-export const getSchool = async (req: Request, res: Response): Promise<void> => {
+export const fetchDetail = async (req: Request, res: Response): Promise<void> => {
 	try {
-		const school = await SchoolService.getSchoolById(req.params.id);
+		const activeYear = String(req?.headers?.year || '');
+		const school = await SchoolService.getDetail(req.params.id, activeYear);
 		if (!school) {
 			res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, MODULE) });
 			return;
@@ -41,9 +42,9 @@ export const getSchool = async (req: Request, res: Response): Promise<void> => {
 	}
 };
 
-export const updateSchool = async (req: Request, res: Response): Promise<void> => {
+export const update = async (req: Request, res: Response): Promise<void> => {
 	try {
-		const school = await SchoolService.updateSchool(req.params.id, req.body);
+		const school = await SchoolService.set(req.params.id, req.body);
 		if (!school) {
 			res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, MODULE) });
 			return;
@@ -54,9 +55,9 @@ export const updateSchool = async (req: Request, res: Response): Promise<void> =
 	}
 };
 
-export const deleteSchool = async (req: Request, res: Response): Promise<void> => {
+export const remove = async (req: Request, res: Response): Promise<void> => {
 	try {
-		const school = await SchoolService.deleteSchool(req.params.id);
+		const school = await SchoolService.omit(req.params.id);
 		if (!school) {
 			res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, MODULE) });
 			return;

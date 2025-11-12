@@ -4,9 +4,9 @@ import i18n from "../i18n/en";
 import { parseMsg } from "utils/helper";
 const MODULE = "class";
 
-export const createClass = async (req: Request, res: Response): Promise<void> => {
+export const create = async (req: Request, res: Response): Promise<void> => {
     try {
-        const cls = await ClassService.createClass(req.body);
+        const cls = await ClassService.add(req.body);
         res.status(201).json({ message: parseMsg(i18n.PASS_POST, MODULE), data: cls });
     } catch (error) {
         res.status(500).json({
@@ -16,9 +16,9 @@ export const createClass = async (req: Request, res: Response): Promise<void> =>
     }
 };
 
-export const getClasses = async (_req: Request, res: Response): Promise<void> => {
+export const fetch = async (req: Request, res: Response): Promise<void> => {
     try {
-        const classes = await ClassService.getAllClasses();
+        const classes = await ClassService.get(String(req?.query?.id || ''));
         res.json({ data: classes });
     } catch (error) {
         res.status(500).json({
@@ -28,9 +28,10 @@ export const getClasses = async (_req: Request, res: Response): Promise<void> =>
     }
 };
 
-export const getClass = async (req: Request, res: Response): Promise<void> => {
+export const fetchDetail = async (req: Request, res: Response): Promise<void> => {
     try {
-        const cls = await ClassService.getClassById(req.params.id);
+        const activeYear = String(req?.headers?.year || '');
+        const cls = await ClassService.getDetail(req.params.id, activeYear);
         if (!cls) {
             res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, MODULE) });
             return;
@@ -44,9 +45,9 @@ export const getClass = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-export const updateClass = async (req: Request, res: Response): Promise<void> => {
+export const update = async (req: Request, res: Response): Promise<void> => {
     try {
-        const cls = await ClassService.updateClass(req.params.id, req.body);
+        const cls = await ClassService.set(req.params.id, req.body);
         if (!cls) {
             res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, MODULE) });
             return;
@@ -60,9 +61,9 @@ export const updateClass = async (req: Request, res: Response): Promise<void> =>
     }
 };
 
-export const deleteClass = async (req: Request, res: Response): Promise<void> => {
+export const remove = async (req: Request, res: Response): Promise<void> => {
     try {
-        const cls = await ClassService.deleteClass(req.params.id);
+        const cls = await ClassService.omit(req.params.id);
         if (!cls) {
             res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, MODULE) });
             return;

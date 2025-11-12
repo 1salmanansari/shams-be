@@ -5,11 +5,10 @@ import { ROLES } from "../utils/constants";
 
 const router = express.Router();
 
-router.post("/", protect, roleAuth([ROLES.ADMIN]), StudentController.createStudent);
-router.get("/", protect, roleAuth([ROLES.PUBLIC, ROLES.ADMIN]), StudentController.getStudents);
-router.get("/:id/detail", protect, roleAuth([ROLES.PUBLIC, ROLES.ADMIN]), StudentController.getStudentDetail);
-router.get("/:id", protect, roleAuth([ROLES.PUBLIC, ROLES.ADMIN]), StudentController.getStudent);
-router.put("/:id", protect, roleAuth([ROLES.ADMIN]), StudentController.updateStudent);
-router.delete("/:id", protect, roleAuth([ROLES.ADMIN]), StudentController.deleteStudent);
+router.post("/", protect, roleAuth([ROLES.ADMIN]), StudentController.create);
+router.get("/", protect, roleAuth([ROLES.PUBLIC, ROLES.ADMIN]), StudentController.fetch);
+router.get("/:id", protect, roleAuth([ROLES.PUBLIC, ROLES.ADMIN]), StudentController.fetchDetail);
+router.put("/:id", protect, roleAuth([ROLES.ADMIN]), StudentController.update);
+router.delete("/:id", protect, roleAuth([ROLES.ADMIN]), StudentController.omit);
 
 export default router;

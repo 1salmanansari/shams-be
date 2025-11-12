@@ -2,52 +2,84 @@ import { Request, Response } from "express";
 import * as FeeService from "../services/fee.service";
 import i18n from "../i18n/en";
 import { parseMsg } from "../utils/helper";
+import { IGet } from "types/common";
 
 const MODULE = "fee";
 
-export const createFeeRecord = async (req: Request, res: Response) => {
+export const add = async (req: Request, res: Response) => {
 	try {
-		const data = await FeeService.createFeeRecord(req.body);
+		const data = await FeeService.create(req.body);
 		res.status(201).json({ message: parseMsg(i18n.PASS_POST, MODULE), data });
 	} catch (error) {
-		res.status(500).json({ error: (error as Error).message });
+		res.status(500).json({
+			error: parseMsg(i18n.FAIL_POST, MODULE),
+			details: (error as Error).message,
+		});
 	}
 };
 
-export const addPayment = async (req: Request, res: Response) => {
+export const get = async (req: Request, res: Response) => {
 	try {
-		const { studentId, academicYear } = req.params;
-		const data = await FeeService.addPayment(studentId, academicYear, req.body);
-		res.json({ message: "Payment added successfully", data });
+		const payload: IGet = {};
+
+		if (req?.query?.year) payload.academicYear = String(req.query.year); // year => ACADEMIC YEAR eg: 2025-2026
+		if (req?.query?.id) payload.studentId = String(req.query.id); // id => STUDENT ID
+		if (req?.query?.class) payload.classId = String(req.query.class); // id => CLASS ID
+		if (req?.query?.school) payload.schoolId = String(req.query.school); // id => SCHOOL ID
+		if (req?.query?.page) payload.page = Number(req.query.page);
+		if (req?.query?.limit) payload.limit = Number(req.query.limit);
+		if (req?.query?.detail) payload.detail = String(req.query.detail); // eg: ALL
+
+		let data;
+		if (payload?.page) {
+			data = await FeeService.fetchByPagination({ ...payload });
+		} else {
+			data = await FeeService.fetch({ ...payload });
+			data = { list: data }; // normalize response shape
+		}
+
+		res.status(200).json({ data });
 	} catch (error) {
-		res.status(500).json({ error: (error as Error).message });
+		res.status(500).json({
+			error: parseMsg(i18n.FAIL_FETCH, MODULE),
+			details: (error as Error).message,
+		});
 	}
 };
 
-export const getFeeSummary = async (req: Request, res: Response) => {
+export const getDetail = async (req: Request, res: Response) => {
 	try {
-		const { studentId, academicYear } = req.params;
-		const data = await FeeService.getFeeSummary(studentId, academicYear);
-		res.json({ data });
+		const data = await FeeService.fetchById(req.params.id);
+		res.status(201).json({ data });
 	} catch (error) {
-		res.status(500).json({ error: (error as Error).message });
+		res.status(500).json({
+			error: parseMsg(i18n.FAIL_FETCH, MODULE),
+			details: (error as Error).message,
+		});
 	}
 };
 
-export const resetFees = async (req: Request, res: Response) => {
+export const set = async (req: Request, res: Response) => {
 	try {
-		await FeeService.resetFeesForNewYear(req.body);
-		res.json({ message: "Fees reset for new academic year." });
+		const data = await FeeService.update(req.params.id, req.body);
+		res.status(201).json({ message: parseMsg(i18n.PASS_UPDATE, MODULE), data });
 	} catch (error) {
-		res.status(500).json({ error: (error as Error).message });
+		res.status(500).json({
+			error: parseMsg(i18n.FAIL_UPDATE, MODULE),
+			details: (error as Error).message,
+		});
 	}
 };
 
-export const getAll = async (req: Request, res: Response) => {
+export const remove = async (req: Request, res: Response) => {
 	try {
-		const data = await FeeService.get();
-		res.json({ data });
+		if (req?.headers?.action === "HARD") await FeeService.remove(req.params.id);
+		await FeeService.removeVirtual(req.params.id);
+		res.status(201).json({ message: parseMsg(i18n.PASS_REMOVE, MODULE) });
 	} catch (error) {
-		res.status(500).json({ error: (error as Error).message });
+		res.status(500).json({
+			error: parseMsg(i18n.FAIL_DELETE, MODULE),
+			details: (error as Error).message,
+		});
 	}
 };
