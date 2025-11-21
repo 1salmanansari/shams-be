@@ -3,6 +3,9 @@ import { Document, Model } from "mongoose";
 export interface ITransactionMatch {
     isDelete?: boolean;
     id?: string;
+    clients?: Array<string>;
+    products?: Array<string>;
+    modes?: Array<string>;
 }
 
 export interface ITransactionItem {

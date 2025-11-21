@@ -7,9 +7,17 @@ export const addItem = async (data: IAdd) => {
     return await customer.save();
 };
 
-export const getItem = async (cond: ITransactionMatch, limit?: number) => {
+export const getItem = async ({ clients = [], products = [], modes = [], ...rest }: ITransactionMatch, limit?: number) => {
+
+    const orConditions: Array<Record<string, unknown>> = [];
+    if (clients?.length) orConditions.push({ client: { $in: clients } });
+    if (products?.length) orConditions.push({ "items.id": { $in: products } });
+    if (modes?.length) orConditions.push({ mode: { $in: modes } });
+
+    const matchStage = orConditions.length > 0 ? { ...rest, $or: orConditions } : { ...rest };
+
     const pipeline: PipelineStage[] = [
-        { $match: { ...cond } },
+        { $match: { ...matchStage } },
         {
             $lookup: {
                 from: "customers",
@@ -123,8 +131,12 @@ export const overview = async () => {
     return await getItem({ isDelete: false }, 5);
 };
 
-export const getItems = async () => {
-    return await getItem({ isDelete: false });
+export const getItems = async (filters?: {
+    clients?: string[];
+    products?: string[];
+    modes?: string[];
+}) => {
+    return await getItem({ isDelete: false, ...filters });
 };
 
 export const getItemById = async (id: string) => {

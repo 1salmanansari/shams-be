@@ -12,4 +12,6 @@ export const PROJECT_STOCK_BRIEF = {
 export const PROJECT_STOCK_LITE = {
     id: true,
     name: true,
+    scale: true,
+    cost: true,
 };

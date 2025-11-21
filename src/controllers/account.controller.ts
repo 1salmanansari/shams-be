@@ -6,7 +6,7 @@ const MODULE = 'transaction';
 
 export const addTransaction = async (req: Request, res: Response): Promise<void> => {
     try {
-        const current = await AccountService.addItem(req.body);
+        const current = await AccountService.addItem({ ...req.body, gst: Number(req.body.gst) });
         res.status(201).json({ message: parseMsg(i18n.PASS_POST, MODULE), data: current });
     } catch (error) {
         res.status(500).json({
@@ -16,9 +16,26 @@ export const addTransaction = async (req: Request, res: Response): Promise<void>
     }
 };
 
-export const getTransactions = async (_req: Request, res: Response): Promise<void> => {
+export const getTransactions = async (req: Request, res: Response): Promise<void> => {
     try {
-        const current = await AccountService.getItems();
+        const clients = req.query.client
+            ? String(req.query.client).split(",").map(s => s.trim())
+            : [];
+
+        const products = req.query.product
+            ? String(req.query.product).split(",").map(s => s.trim())
+            : [];
+
+        const modes = req.query.mode
+            ? String(req.query.mode).split(",").map(s => s.trim().toUpperCase())
+            : [];
+
+        const current = await AccountService.getItems({
+            clients,
+            products,
+            modes
+        });
+
         res.json({ data: current });
     } catch (error) {
         res.status(500).json({ error: parseMsg(i18n.FAIL_FETCH, MODULE), details: (error as Error).message });
