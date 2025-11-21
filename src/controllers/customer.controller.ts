@@ -52,6 +52,25 @@ export const getCustomer = async (req: Request, res: Response): Promise<void> =>
     }
 };
 
+export const getCustomerStatement = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const id = req.params.id;
+        const data = await CustomerService.getCustomerStatement(id);
+
+        if (!data) {
+            res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, "customer") });
+            return;
+        }
+
+        res.json({ data });
+    } catch (error) {
+        res.status(500).json({
+            error: parseMsg(i18n.FAIL_FETCH, "customer"),
+            details: (error as Error).message,
+        });
+    }
+};
+
 export const updateCustomer = async (req: Request, res: Response): Promise<void> => {
     try {
         const current = await CustomerService.updateCustomer(req.params.id, req.body);

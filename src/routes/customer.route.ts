@@ -4,6 +4,7 @@ import {
     addCustomer,
     getCustomers,
     getCustomer,
+    getCustomerStatement,
     updateCustomer,
     deleteCustomer,
 } from "../controllers/customer.controller";
@@ -13,6 +14,7 @@ const router = express.Router();
 
 router.post("/", protect, roleAuth([ROLES.ADMIN, ROLES.PUBLIC]), addCustomer);
 router.get("/", protect, roleAuth([ROLES.ADMIN, ROLES.PUBLIC]), getCustomers);
+router.get("/:id/statement", protect, roleAuth([ROLES.ADMIN, ROLES.PUBLIC]), getCustomerStatement);
 router.get("/:id", protect, roleAuth([ROLES.ADMIN, ROLES.PUBLIC]), getCustomer);
 router.put("/:id", protect, roleAuth([ROLES.ADMIN, ROLES.PUBLIC]), updateCustomer);
 router.delete("/:id", protect, roleAuth([ROLES.ADMIN, ROLES.PUBLIC]), deleteCustomer);

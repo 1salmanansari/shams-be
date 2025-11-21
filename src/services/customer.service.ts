@@ -1,5 +1,7 @@
 import { IAdd, IEdit, IGet } from "interfaces/customer";
 import Customer from "../models/customer.modal";
+import Payment from "../models/payment.modal";
+import Acc from "../models/account.modal";
 import { PROJECT_CUSTOMER_BRIEF, PROJECT_CUSTOMER_LITE } from "projection/customer";
 
 export const addCustomer = async (data: IAdd) => {
@@ -46,8 +48,80 @@ export const getCustomerById = async (id: string, isLite?: Boolean) => {
     return await Customer.findOne({ id }, project);
 };
 
+export const getCustomerStatement = async (customerId: string) => {
+    const customer = await Customer.findOne({ id: customerId }).lean();
+    if (!customer) return null;
+
+    // 1) fetch all transactions (purchases)
+    const purchases = await Acc.find({ client: customerId, isDelete: false })
+        .select("id gst items millie")
+        .lean();
+
+    // 2) fetch all payments
+    const payments = await Payment.find({ customerId })
+        .select("amount mode date remark")
+        .lean();
+
+    // compute PURCHASE totals
+    let totalPurchase = 0;
+    let totalGst = 0;
+
+    const purchaseStatements = purchases.map((t) => {
+        const gross = t.items.reduce((sum, it) => sum + it.qty * it.rate, 0);
+        const gstAmount = (gross * t.gst) / 100;
+        const total = gross + gstAmount;
+
+        totalPurchase += total;
+        totalGst += gstAmount;
+
+        return {
+            type: "PURCHASE",
+            date: t.millie,
+            gross,
+            gst: gstAmount,
+            total
+        };
+    });
+
+    // compute PAYMENT total
+    const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
+
+    const paymentStatements = payments.map((p) => ({
+        type: "PAYMENT",
+        date: p.date,
+        amount: p.amount,
+        mode: p.mode,
+        remark: p.remark || ""
+    }));
+
+    // merge + sort
+    const statement = [...purchaseStatements, ...paymentStatements].sort(
+        (a, b) => a.date - b.date
+    );
+
+    return {
+        customerId,
+        customerName: customer.name,
+        prevPending: customer.prev,
+        totalPurchase,
+        totalGst,
+        totalPaid,
+        statement
+    };
+};
+
 export const updateCustomer = async (id: string, data: IEdit) => {
     return await Customer.findOneAndUpdate({ id }, { ...data, updatedAt: Date.now() }, { new: true });
+};
+
+export const updateCustomerPayment = async (customerId: string, amount: number) => {
+    const customer = await Customer.findOne({ id: customerId });
+    if (!customer) return null;
+
+    customer.prev = Math.max(0, (customer.prev || 0) - amount);
+    customer.updatedAt = Date.now();
+
+    return await customer.save();
 };
 
 export const deleteCustomer = async (id: string) => {
