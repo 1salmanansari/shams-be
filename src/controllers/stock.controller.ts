@@ -26,6 +26,18 @@ export const getStock = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
+export const getStockDetails = async (req: Request, res: Response) => {
+    try {
+        const current = await StockService.getStockDetails(req.params.id);
+        current
+            ? res.json({ data: current })
+            : res.status(404).json({ error: parseMsg(i18n.FAIL_EMPTY, "stock item") });
+    } catch (err) {
+        res.status(500).json({ error: parseMsg(i18n.FAIL_FETCH, "stock items"), details: err });
+    }
+};
+
+
 export const getStockItem = async (req: Request, res: Response): Promise<void> => {
     try {
         const isLite = Boolean(req?.headers?.lite || "")

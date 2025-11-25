@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import * as PaymentService from "../services/payment.service";
 import i18n from "../i18n/en";
 import { parseMsg } from "utils/helper";
+import { IGetPaymentQuery } from "interfaces/payment";
 const MODULE = "payment";
 
 export const addPayment = async (req: Request, res: Response) => {
@@ -15,8 +16,10 @@ export const addPayment = async (req: Request, res: Response) => {
 
 export const getPayments = async (req: Request, res: Response) => {
     try {
-        const customerId = String(req.query.customerId || "");
-        const current = await PaymentService.getPayments(customerId);
+        let query: IGetPaymentQuery = {};
+        if (req?.query?.client) query.client = String(req.query.client);
+        if (req?.query?.mode) query.mode = String(req.query.mode);
+        const current = await PaymentService.getPayments(query);
         res.json({ data: current });
     } catch (error) {
         res.status(500).json({ error: parseMsg(i18n.FAIL_FETCH, MODULE), details: error });

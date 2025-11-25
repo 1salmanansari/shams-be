@@ -48,18 +48,18 @@ export const getCustomerById = async (id: string, isLite?: Boolean) => {
     return await Customer.findOne({ id }, project);
 };
 
-export const getCustomerStatement = async (customerId: string) => {
-    const customer = await Customer.findOne({ id: customerId }).lean();
+export const getCustomerStatement = async (client: string) => {
+    const customer = await Customer.findOne({ id: client }).lean();
     if (!customer) return null;
 
     // 1) fetch all transactions (purchases)
-    const purchases = await Acc.find({ client: customerId, isDelete: false })
+    const purchases = await Acc.find({ client: client, isDelete: false })
         .select("id gst items millie")
         .lean();
 
     // 2) fetch all payments
-    const payments = await Payment.find({ customerId })
-        .select("amount mode date remark")
+    const payments = await Payment.find({ client })
+        .select("amount mode millie remark")
         .lean();
 
     // compute PURCHASE totals
@@ -76,7 +76,7 @@ export const getCustomerStatement = async (customerId: string) => {
 
         return {
             type: "PURCHASE",
-            date: t.millie,
+            millie: t.millie,
             gross,
             gst: gstAmount,
             total
@@ -88,7 +88,7 @@ export const getCustomerStatement = async (customerId: string) => {
 
     const paymentStatements = payments.map((p) => ({
         type: "PAYMENT",
-        date: p.date,
+        millie: p.millie,
         amount: p.amount,
         mode: p.mode,
         remark: p.remark || ""
@@ -96,11 +96,11 @@ export const getCustomerStatement = async (customerId: string) => {
 
     // merge + sort
     const statement = [...purchaseStatements, ...paymentStatements].sort(
-        (a, b) => a.date - b.date
+        (a, b) => a.millie - b.millie
     );
 
     return {
-        customerId,
+        client,
         customerName: customer.name,
         prevPending: customer.prev,
         totalPurchase,
@@ -114,8 +114,8 @@ export const updateCustomer = async (id: string, data: IEdit) => {
     return await Customer.findOneAndUpdate({ id }, { ...data, updatedAt: Date.now() }, { new: true });
 };
 
-export const updateCustomerPayment = async (customerId: string, amount: number) => {
-    const customer = await Customer.findOne({ id: customerId });
+export const updateCustomerPayment = async (client: string, amount: number) => {
+    const customer = await Customer.findOne({ id: client });
     if (!customer) return null;
 
     customer.prev = Math.max(0, (customer.prev || 0) - amount);

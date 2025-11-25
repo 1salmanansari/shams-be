@@ -1,9 +1,9 @@
 export const PROJECT_PAYMENT = {
     id: true,
-    customerId: true,
+    client: true,
     amount: true,
     mode: true,
     remark: true,
-    date: true,
+    millie: true,
     createdAt: true,
 };

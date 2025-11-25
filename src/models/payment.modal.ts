@@ -8,7 +8,7 @@ const paymentSchema = new mongoose.Schema({
         unique: true,
         index: true,
     },
-    customerId: { type: String, required: true, index: true },
+    client: { type: String, required: true, index: true },
     amount: { type: Number, required: true, min: 1 },
     mode: {
         type: String,
@@ -17,12 +17,12 @@ const paymentSchema = new mongoose.Schema({
         uppercase: true,
     },
     remark: { type: String, default: "", trim: true },
-    date: { type: Number, required: true }, // store timestamp
+    millie: { type: Number, required: true }, // store timestamp
     createdAt: { type: Number, default: () => Date.now(), required: true },
     updatedAt: { type: Number, default: () => Date.now(), required: true },
 });
 
-paymentSchema.index({ customerId: 1, date: -1 });
+paymentSchema.index({ client: 1, millie: -1 });
 
 paymentSchema.pre("save", function (next) {
     this.updatedAt = Date.now();

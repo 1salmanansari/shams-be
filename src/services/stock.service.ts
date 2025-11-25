@@ -1,5 +1,6 @@
 import { IAdd, IEdit } from "interfaces/stock";
 import Stock from "../models/stock.modal";
+import Transaction from "../models/account.modal";
 import { PROJECT_STOCK_BRIEF, PROJECT_STOCK_LITE } from "projection/stock";
 
 export const addItem = async (data: IAdd) => {
@@ -14,6 +15,79 @@ export const getItems = async (isLite: boolean) => {
         count: await Stock.countDocuments()
     };
 };
+
+export const getStockDetails = async (id: string) => {
+    // Get stock basic info
+    const stock = await Stock.findOne({ id }).lean();
+    if (!stock) return null;
+
+    const initialInventory = stock.available;
+    let sold = 0;
+    const statement: Array<any> = [];
+
+    // Fetch all transactions where this item was involved
+    const transactions = await Transaction.aggregate([
+        { $match: { "items.id": id, isDelete: false } },
+        {
+            $lookup: {
+                from: "customers",
+                localField: "client",
+                foreignField: "id",
+                as: "customer",
+                pipeline: [{ $project: { id: 1, name: 1, company: 1 } }]
+            }
+        },
+        { $unwind: "$customer" },
+        {
+            $project: {
+                customer: "$customer.name",
+                items: 1,
+                millie: 1,
+                gst: 1
+            }
+        }
+    ]);
+
+    for (const tx of transactions) {
+        const itm = tx.items.find((i: any) => i.id === id);
+        if (!itm) continue;
+
+        const gross = itm.qty * itm.rate;
+        const gstAmount = (gross * tx.gst) / 100;
+        const total = gross + gstAmount;
+
+        sold += itm.qty;
+
+        statement.push({
+            millie: tx.millie,
+            customer: tx.customer,
+            qty: itm.qty,
+            rate: itm.rate,
+            gross,
+            gst: gstAmount,
+            total
+        });
+    }
+
+    const remaining = stock.available;
+    const initial = sold + remaining;
+    const totalPurchaseValue = statement.reduce((sum, s) => sum + s.total, 0);
+
+    statement.sort((a, b) => a.millie - b.millie);
+
+    return {
+        id: stock.id,
+        name: stock.name,
+        scale: stock.scale,
+        type: stock.type,
+        initialInventory: initial,
+        sold,
+        available: remaining,
+        totalPurchaseValue,
+        statement
+    };
+};
+
 
 export const overview = async () => {
     return {

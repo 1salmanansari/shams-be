@@ -1,15 +1,14 @@
 import Payment from "../models/payment.modal";
-import { IPaymentAdd, IPaymentEdit } from "interfaces/payment";
+import { IGetPaymentQuery, IPaymentAdd, IPaymentEdit } from "interfaces/payment";
 import { PROJECT_PAYMENT } from "projection/payment";
 
 export const addPayment = async (data: IPaymentAdd) => {
     return new Payment(data).save();
 };
 
-export const getPayments = async (customerId?: string) => {
-    const condition = customerId ? { customerId } : {};
+export const getPayments = async (condition: IGetPaymentQuery) => {
     return {
-        list: await Payment.find(condition, PROJECT_PAYMENT).sort({ date: -1 }).lean(),
+        list: await Payment.find(condition, PROJECT_PAYMENT).sort({ millie: -1 }).lean(),
         count: await Payment.countDocuments(condition),
     };
 };
