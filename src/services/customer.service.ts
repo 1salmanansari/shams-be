@@ -100,9 +100,10 @@ export const getCustomerStatement = async (client: string) => {
     );
 
     return {
-        client,
-        customerName: customer.name,
+        id: client,
+        name: customer.name,
         prevPending: customer.prev,
+        pending: customer.prev + totalPurchase - totalPaid,
         totalPurchase,
         totalGst,
         totalPaid,

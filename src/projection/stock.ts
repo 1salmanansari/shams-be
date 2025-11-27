@@ -14,4 +14,5 @@ export const PROJECT_STOCK_LITE = {
     name: true,
     scale: true,
     cost: true,
+    available: true
 };

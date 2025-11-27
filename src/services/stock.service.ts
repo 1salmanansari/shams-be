@@ -69,10 +69,7 @@ export const getStockDetails = async (id: string) => {
         });
     }
 
-    const remaining = stock.available;
-    const initial = sold + remaining;
-    const totalPurchaseValue = statement.reduce((sum, s) => sum + s.total, 0);
-
+    const remaining = stock.available - sold;
     statement.sort((a, b) => a.millie - b.millie);
 
     return {
@@ -80,10 +77,10 @@ export const getStockDetails = async (id: string) => {
         name: stock.name,
         scale: stock.scale,
         type: stock.type,
-        initialInventory: initial,
+        cost: stock.cost,
+        initialInventory: stock.available,
         sold,
         available: remaining,
-        totalPurchaseValue,
         statement
     };
 };

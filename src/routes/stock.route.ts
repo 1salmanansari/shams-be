@@ -15,7 +15,7 @@ const router = express.Router();
 
 router.post("/", protect, roleAuth([ROLES.ADMIN, ROLES.PUBLIC]), addStock);
 router.get("/", protect, roleAuth([ROLES.ADMIN, ROLES.PUBLIC]), getStock);
-router.get("/details/:id", protect, roleAuth([ROLES.ADMIN, ROLES.PUBLIC]), getStockDetails);
+router.get("/:id/statement", protect, roleAuth([ROLES.ADMIN, ROLES.PUBLIC]), getStockDetails);
 router.get("/:id", protect, roleAuth([ROLES.ADMIN, ROLES.PUBLIC]), getStockItem);
 router.patch("/:id", protect, roleAuth([ROLES.ADMIN, ROLES.PUBLIC]), setInventory);
 router.put("/:id", protect, roleAuth([ROLES.ADMIN, ROLES.PUBLIC]), updateStock);
